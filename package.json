@@ -1,0 +1,40 @@
+{
+  "name": "voice-csv-viewer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "build:ios": "tauri ios build --debug",
+    "deploy:ios": "bash scripts/deploy-ios.sh debug",
+    "ship:ios": "pnpm build:ios && pnpm deploy:ios",
+    "build:android": "ANDROID_HOME=$HOME/Library/Android/sdk NDK_HOME=$HOME/Library/Android/sdk/ndk/30.0.14904198 JAVA_HOME=/Applications/Android\\ Studio.app/Contents/jbr/Contents/Home tauri android build --debug",
+    "deploy:android": "bash scripts/deploy-android.sh",
+    "ship:android": "pnpm build:android && pnpm deploy:android"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.1.1",
+    "@tauri-apps/plugin-dialog": "^2.0.1",
+    "@tauri-apps/plugin-fs": "^2.0.3",
+    "@tauri-apps/plugin-opener": "^2.2.1",
+    "papaparse": "^5.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0",
+    "@types/papaparse": "^5.3.14",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.2",
+    "vite": "^6.0.3"
+  }
+}

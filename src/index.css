@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  body {
+    @apply bg-[#0f0f1a] text-slate-100 antialiased;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    /* スクロールのカクつき軽減 */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    /* ピンチズーム無効化 */
+    touch-action: pan-x pan-y;
+  }
+
+  /* iOSはfont-size < 16pxのinputにフォーカスすると自動ズームする */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  img {
+    /* 画像のドラッグ防止 */
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

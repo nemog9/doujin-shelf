@@ -1,0 +1,32 @@
+[package]
+name = "voice-csv-viewer"
+version = "0.1.0"
+description = "Voice work CSV viewer for DMM and DLSite"
+authors = []
+edition = "2021"
+
+# For mobile: staticlib + cdylib are required by Tauri iOS/Android
+[lib]
+name = "voice_csv_viewer_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.dev]
+incremental = true
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

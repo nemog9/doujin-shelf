@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">voice-csv-viewer</string>
+    <string name="main_activity_title">voice-csv-viewer</string>
+</resources>
