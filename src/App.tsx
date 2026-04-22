@@ -11,6 +11,7 @@ import { SearchFAB } from "./components/SearchFAB";
 import { SearchModal } from "./components/SearchModal";
 import { BottomNav, Tab } from "./components/BottomNav";
 import { RandomView } from "./components/RandomView";
+import { SettingsView } from "./components/SettingsView";
 import { SortField } from "./types";
 
 export default function App() {
@@ -19,12 +20,14 @@ export default function App() {
     favorites,
     searchQuery,
     sortBy,
+    linkOpenMode,
     lastImportResult,
     selectedWork,
     addWorks,
     toggleFavorite,
     setSearchQuery,
     setSortBy,
+    setLinkOpenMode,
     selectWork,
     dismissImportResult,
   } = useAppStore();
@@ -90,7 +93,7 @@ export default function App() {
       )}
 
       {/* Active search indicator */}
-      {searchQuery && activeTab !== "random" && (
+      {searchQuery && activeTab !== "random" && activeTab !== "settings" && (
         <div className="px-3 py-1.5 flex items-center gap-2 shrink-0">
           <span className="text-xs text-slate-400">
             「{searchQuery}」— {displayedWorks.length}件
@@ -107,6 +110,11 @@ export default function App() {
       {/* Main content */}
       {activeTab === "random" ? (
         <RandomView works={works} onSelect={selectWork} />
+      ) : activeTab === "settings" ? (
+        <SettingsView
+          linkOpenMode={linkOpenMode}
+          onChangeLinkOpenMode={setLinkOpenMode}
+        />
       ) : (
         <main
           className="flex-1 overflow-y-auto scrollbar-hide"
@@ -158,7 +166,7 @@ export default function App() {
       />
 
       {/* Search FAB — only on list/favorites tabs */}
-      {activeTab !== "random" && (
+      {activeTab !== "random" && activeTab !== "settings" && (
         <SearchFAB
           onClick={() => setSearchOpen(true)}
           hasActiveQuery={!!searchQuery}
@@ -166,7 +174,7 @@ export default function App() {
       )}
 
       {/* Search modal */}
-      {searchOpen && (
+      {searchOpen && activeTab !== "settings" && (
         <SearchModal
           query={searchQuery}
           onQueryChange={setSearchQuery}

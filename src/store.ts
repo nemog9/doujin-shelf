@@ -1,12 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Work, ImportResult, SortField } from "./types";
+import { Work, ImportResult, SortField, LinkOpenMode } from "./types";
 
 interface AppState {
   works: Work[];
   favorites: string[];
   searchQuery: string;
   sortBy: SortField;
+  linkOpenMode: LinkOpenMode;
   lastImportResult: ImportResult | null;
   selectedWork: Work | null;
 
@@ -14,6 +15,7 @@ interface AppState {
   toggleFavorite: (id: string) => void;
   setSearchQuery: (q: string) => void;
   setSortBy: (s: SortField) => void;
+  setLinkOpenMode: (mode: LinkOpenMode) => void;
   selectWork: (work: Work | null) => void;
   dismissImportResult: () => void;
   clearAll: () => void;
@@ -26,6 +28,7 @@ export const useAppStore = create<AppState>()(
       favorites: [],
       searchQuery: "",
       sortBy: "importedAt",
+      linkOpenMode: "external",
       lastImportResult: null,
       selectedWork: null,
 
@@ -54,13 +57,18 @@ export const useAppStore = create<AppState>()(
 
       setSearchQuery: (searchQuery) => set({ searchQuery }),
       setSortBy: (sortBy) => set({ sortBy }),
+      setLinkOpenMode: (linkOpenMode) => set({ linkOpenMode }),
       selectWork: (selectedWork) => set({ selectedWork }),
       dismissImportResult: () => set({ lastImportResult: null }),
       clearAll: () => set({ works: [], lastImportResult: null }),
     }),
     {
       name: "voice-csv-viewer",
-      partialize: (state) => ({ works: state.works, favorites: state.favorites }),
+      partialize: (state) => ({
+        works: state.works,
+        favorites: state.favorites,
+        linkOpenMode: state.linkOpenMode,
+      }),
     }
   )
 );

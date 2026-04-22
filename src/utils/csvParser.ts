@@ -17,6 +17,21 @@ function detectSource(url: string): Work["source"] {
   return "other";
 }
 
+function extractDmmProductId(url: string): string {
+  const match = url.match(/(?:product_id|cid)=([\w-]+)/i);
+  return match?.[1] ?? "";
+}
+
+function buildDmmLibraryUrl(productId: string): string {
+  return `https://www.dmm.co.jp/dc/-/mylibrary/detail/=/product_id=${productId}/`;
+}
+
+function normalizeProductUrl(url: string): string {
+  if (!/dmm\.co\.jp/i.test(url)) return url;
+  const productId = extractDmmProductId(url);
+  return productId ? buildDmmLibraryUrl(productId) : url;
+}
+
 function parseActors(value: string): string[] {
   if (!value) return [];
   return value
@@ -110,7 +125,9 @@ export function parseCSV(csvContent: string): ParseCSVResult {
     }
 
     const title = (partial.title as string | undefined) ?? "";
-    const productUrl = (partial.productUrl as string | undefined) ?? "";
+    const rawProductUrl = (partial.productUrl as string | undefined) ?? "";
+    const productId = extractDmmProductId(rawProductUrl);
+    const productUrl = normalizeProductUrl(rawProductUrl);
 
     if (!title || !productUrl) {
       errors++;
@@ -119,6 +136,7 @@ export function parseCSV(csvContent: string): ParseCSVResult {
 
     works.push({
       id: hashUrl(productUrl),
+      productId: productId || undefined,
       title,
       circle: (partial.circle as string | undefined) ?? "",
       actors: (partial.actors as string[] | undefined) ?? [],

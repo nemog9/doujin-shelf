@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Work } from "../types";
 import { isTauri } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { useAppStore } from "../store";
 
 // Android の JavascriptInterface (Chrome Custom Tabs)
 declare global {
   interface Window {
-    InAppBrowser?: { open: (url: string) => void };
+    AppBridge?: { openUrl: (url: string) => void };
   }
 }
 
@@ -22,8 +23,23 @@ const SOURCE_LABEL: Record<Work["source"], string> = {
   other: "Other",
 };
 
+function extractDmmProductId(work: Work): string {
+  if (work.productId) return work.productId;
+  const match = work.productUrl.match(/(?:product_id|cid)=([\w-]+)/i);
+  return match?.[1] ?? "";
+}
+
+function getOpenUrl(work: Work): string {
+  if (work.source !== "dmm") return work.productUrl;
+  const productId = extractDmmProductId(work);
+  return productId
+    ? `https://www.dmm.co.jp/dc/-/mylibrary/detail/=/product_id=${productId}/`
+    : work.productUrl;
+}
+
 export function WorkModal({ work, onClose, onFilterBy }: Props) {
   const [imgError, setImgError] = useState(false);
+  const linkOpenMode = useAppStore((state) => state.linkOpenMode);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -34,22 +50,21 @@ export function WorkModal({ work, onClose, onFilterBy }: Props) {
   }, [onClose]);
 
   async function openProductPage() {
-    if (!work.productUrl) return;
+    const openTarget = getOpenUrl(work);
+    if (!openTarget) return;
     if (isTauri()) {
-      // Android: Chrome Custom Tabs (アプリ内ブラウザ)
-      if (window.InAppBrowser) {
-        window.InAppBrowser.open(work.productUrl);
+      if (linkOpenMode === "inApp" && window.AppBridge) {
+        window.AppBridge.openUrl(openTarget);
         return;
       }
-      // iOS / デスクトップ: システムブラウザ
       try {
-        await openUrl(work.productUrl);
+        await openUrl(openTarget);
       } catch (err) {
         alert(`URL を開けませんでした:\n${err}`);
       }
     } else {
       const a = document.createElement("a");
-      a.href = work.productUrl;
+      a.href = openTarget;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
       a.click();
@@ -142,7 +157,7 @@ export function WorkModal({ work, onClose, onFilterBy }: Props) {
               onClick={openProductPage}
               className="w-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-semibold py-3 rounded-xl transition-colors"
             >
-              作品ページを開く →
+              ライブラリ詳細を開く →
             </button>
           )}
         </div>

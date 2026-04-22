@@ -1,4 +1,4 @@
-export type Tab = "list" | "favorites" | "random";
+export type Tab = "list" | "favorites" | "random" | "settings";
 
 interface Props {
   activeTab: Tab;
@@ -10,6 +10,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "list", label: "一覧", icon: "▤" },
   { id: "favorites", label: "お気に入り", icon: "♥" },
   { id: "random", label: "ランダム", icon: "🎲" },
+  { id: "settings", label: "設定", icon: "⚙" },
 ];
 
 export function BottomNav({ activeTab, onChange, favoritesCount }: Props) {
