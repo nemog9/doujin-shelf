@@ -71,7 +71,7 @@ class DmmScraperDialog(
     super.onCreate(savedInstanceState)
     window?.requestFeature(Window.FEATURE_NO_TITLE)
     if (keepAwake) {
-      activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+      window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     val root = FrameLayout(activity)
@@ -172,7 +172,7 @@ class DmmScraperDialog(
 
   override fun dismiss() {
     if (keepAwake) {
-      activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+      window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     super.dismiss()
   }
