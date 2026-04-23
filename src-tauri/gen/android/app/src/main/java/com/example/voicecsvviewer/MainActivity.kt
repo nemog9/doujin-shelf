@@ -259,9 +259,9 @@ private const val SCRAPE_SCRIPT = """
     }
 
     function findThumbnail(card, link, productId, genre) {
-      // DOMから実際の画像URLを優先取得
+      // DOMから実際の画像URLを優先取得（pr.jpg→pl.jpgに差し替えて高解像度化）
       var img = card.querySelector('img[src*="dmm"]') || link.querySelector('img[src*="dmm"]');
-      if (img && img.src) return img.src;
+      if (img && img.src) return img.src.replace(/pr\.jpg$/i, 'pl.jpg');
       // ジャンル別フォールバックURL
       var typeMap = { 'ボイス': 'voice', 'コミック': 'comic', 'CG': 'cg', '動画': 'video' };
       var type = typeMap[genre] || 'voice';
