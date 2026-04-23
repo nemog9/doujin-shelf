@@ -54,6 +54,7 @@ export default function App() {
     setFullScanMode,
     selectWork,
     dismissImportResult,
+    clearAll,
   } = useAppStore();
 
   const [searchOpen, setSearchOpen] = useState(false);
@@ -165,6 +166,26 @@ export default function App() {
     }
   }, [works]);
 
+  const handleDeleteAll = useCallback(async () => {
+    const first = await confirm("ライブラリのすべての作品とお気に入りを削除します。よろしいですか？", {
+      title: "データを削除",
+      kind: "warning",
+      okLabel: "削除する",
+      cancelLabel: "キャンセル",
+    });
+    if (!first) return;
+
+    const second = await confirm("本当に削除しますか？この操作は元に戻せません。", {
+      title: "最終確認",
+      kind: "warning",
+      okLabel: "すべて削除する",
+      cancelLabel: "キャンセル",
+    });
+    if (!second) return;
+
+    clearAll();
+  }, [clearAll]);
+
   const handleImportFromDmm = useCallback(() => {
     const existingTitlesJson = JSON.stringify(works.map((work) => work.title.trim()).filter(Boolean));
     window.AppBridge?.startDmmScraper?.(existingTitlesJson, preventSleepDuringImport, fullScanMode);
@@ -254,6 +275,7 @@ export default function App() {
           onChangeFullScanMode={setFullScanMode}
           canExport={canExport}
           onExport={handleExport}
+          onDeleteAll={handleDeleteAll}
         />
       ) : (
         <main

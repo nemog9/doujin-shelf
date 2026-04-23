@@ -9,6 +9,7 @@ interface Props {
   onChangeFullScanMode: (enabled: boolean) => void;
   canExport: boolean;
   onExport: () => void;
+  onDeleteAll: () => void;
 }
 
 const OPTIONS: { id: LinkOpenMode; title: string; description: string }[] = [
@@ -33,6 +34,7 @@ export function SettingsView({
   onChangeFullScanMode,
   canExport,
   onExport,
+  onDeleteAll,
 }: Props) {
   return (
     <main className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-24 space-y-4">
@@ -153,6 +155,19 @@ export function SettingsView({
           <p className="text-sm font-medium text-slate-100">CSVを書き出す</p>
           <p className="mt-1 text-xs leading-relaxed text-slate-400">
             現在のライブラリをCSVにして、保存先を選んで書き出します。
+          </p>
+        </button>
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold text-slate-100">データ管理</h2>
+        <button
+          onClick={onDeleteAll}
+          className="w-full rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-4 text-left transition-colors hover:bg-red-500/20 active:bg-red-500/30"
+        >
+          <p className="text-sm font-medium text-red-400">すべてのデータを削除</p>
+          <p className="mt-1 text-xs leading-relaxed text-slate-400">
+            ライブラリの作品・お気に入りをすべて削除します。この操作は元に戻せません。
           </p>
         </button>
       </section>

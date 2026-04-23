@@ -80,7 +80,7 @@ export const useAppStore = create<AppState>()(
       setFullScanMode: (fullScanMode) => set({ fullScanMode }),
       selectWork: (selectedWork) => set({ selectedWork }),
       dismissImportResult: () => set({ lastImportResult: null }),
-      clearAll: () => set({ works: [], lastImportResult: null }),
+      clearAll: () => set({ works: [], favorites: [], selectedWork: null, lastImportResult: null }),
     }),
     {
       name: "voice-csv-viewer",
