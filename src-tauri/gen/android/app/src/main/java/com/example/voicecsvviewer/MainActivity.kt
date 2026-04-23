@@ -258,14 +258,10 @@ private const val SCRAPE_SCRIPT = """
       return el ? el.textContent.trim() : '';
     }
 
-    function findThumbnail(card, link, productId, genre) {
-      // DOMから実際の画像URLを優先取得（pr.jpg→pl.jpgに差し替えて高解像度化）
-      var img = card.querySelector('img[src*="dmm"]') || link.querySelector('img[src*="dmm"]');
-      if (img && img.src) return img.src.replace(/pr\.jpg$/i, 'pl.jpg');
-      // ジャンル別フォールバックURL
-      var typeMap = { 'ボイス': 'voice', 'コミック': 'comic', 'CG': 'cg', '動画': 'video' };
+    function findThumbnail(productId, genre) {
+      var typeMap = { 'ボイス': 'voice', 'コミック': 'comic', 'CG': 'cg', '動画': 'cg' };
       var type = typeMap[genre] || 'voice';
-      return 'https://doujin-assets.dmm.co.jp/digital/' + type + '/' + productId + '/' + productId + 'pl.jpg';
+      return 'https://doujin-assets.dmm.co.jp/digital/' + type + '/' + productId + '/' + productId + 'pr.jpg';
     }
 
     var hitDuplicate = false;
@@ -297,7 +293,7 @@ private const val SCRAPE_SCRIPT = """
             title: title,
             circle: findCircle(card, link),
             productUrl: 'https://www.dmm.co.jp/dc/-/mylibrary/detail/=/product_id=' + id + '/',
-            thumbnailUrl: findThumbnail(card, link, id, genre),
+            thumbnailUrl: findThumbnail(id, genre),
             actors: [],
             genre: genre
           });
