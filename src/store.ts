@@ -10,6 +10,7 @@ interface AppState {
   sortBy: SortField;
   linkOpenMode: LinkOpenMode;
   preventSleepDuringImport: boolean;
+  fullScanMode: boolean;
   lastImportResult: ImportResult | null;
   selectedWork: Work | null;
 
@@ -21,6 +22,7 @@ interface AppState {
   setSortBy: (s: SortField) => void;
   setLinkOpenMode: (mode: LinkOpenMode) => void;
   setPreventSleepDuringImport: (enabled: boolean) => void;
+  setFullScanMode: (enabled: boolean) => void;
   selectWork: (work: Work | null) => void;
   dismissImportResult: () => void;
   clearAll: () => void;
@@ -36,6 +38,7 @@ export const useAppStore = create<AppState>()(
       sortBy: "importedAt",
       linkOpenMode: "external",
       preventSleepDuringImport: true,
+      fullScanMode: false,
       lastImportResult: null,
       selectedWork: null,
 
@@ -74,6 +77,7 @@ export const useAppStore = create<AppState>()(
       setSortBy: (sortBy) => set({ sortBy }),
       setLinkOpenMode: (linkOpenMode) => set({ linkOpenMode }),
       setPreventSleepDuringImport: (preventSleepDuringImport) => set({ preventSleepDuringImport }),
+      setFullScanMode: (fullScanMode) => set({ fullScanMode }),
       selectWork: (selectedWork) => set({ selectedWork }),
       dismissImportResult: () => set({ lastImportResult: null }),
       clearAll: () => set({ works: [], lastImportResult: null }),
@@ -85,6 +89,7 @@ export const useAppStore = create<AppState>()(
         favorites: state.favorites,
         linkOpenMode: state.linkOpenMode,
         preventSleepDuringImport: state.preventSleepDuringImport,
+        fullScanMode: state.fullScanMode,
       }),
     }
   )

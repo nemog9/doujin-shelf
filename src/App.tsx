@@ -18,10 +18,6 @@ import { SortField } from "./types";
 
 declare global {
   interface Window {
-    AppBridge?: {
-      openUrl: (url: string) => void;
-      startDmmScraper?: (existingTitlesJson?: string, keepAwake?: boolean) => void;
-    };
     __onDmmScraped?: (items: DmmScrapedItem[]) => void;
   }
 }
@@ -44,6 +40,7 @@ export default function App() {
     sortBy,
     linkOpenMode,
     preventSleepDuringImport,
+    fullScanMode,
     lastImportResult,
     selectedWork,
     addWorks,
@@ -54,6 +51,7 @@ export default function App() {
     setSortBy,
     setLinkOpenMode,
     setPreventSleepDuringImport,
+    setFullScanMode,
     selectWork,
     dismissImportResult,
   } = useAppStore();
@@ -169,8 +167,8 @@ export default function App() {
 
   const handleImportFromDmm = useCallback(() => {
     const existingTitlesJson = JSON.stringify(works.map((work) => work.title.trim()).filter(Boolean));
-    window.AppBridge?.startDmmScraper?.(existingTitlesJson, preventSleepDuringImport);
-  }, [preventSleepDuringImport, works]);
+    window.AppBridge?.startDmmScraper?.(existingTitlesJson, preventSleepDuringImport, fullScanMode);
+  }, [preventSleepDuringImport, fullScanMode, works]);
 
   useEffect(() => {
     setCanImportFromDmm(Boolean(isTauri() && window.AppBridge?.startDmmScraper));
@@ -252,6 +250,8 @@ export default function App() {
           onChangeLinkOpenMode={setLinkOpenMode}
           preventSleepDuringImport={preventSleepDuringImport}
           onChangePreventSleepDuringImport={setPreventSleepDuringImport}
+          fullScanMode={fullScanMode}
+          onChangeFullScanMode={setFullScanMode}
           canExport={canExport}
           onExport={handleExport}
         />

@@ -5,6 +5,8 @@ interface Props {
   onChangeLinkOpenMode: (mode: LinkOpenMode) => void;
   preventSleepDuringImport: boolean;
   onChangePreventSleepDuringImport: (enabled: boolean) => void;
+  fullScanMode: boolean;
+  onChangeFullScanMode: (enabled: boolean) => void;
   canExport: boolean;
   onExport: () => void;
 }
@@ -27,6 +29,8 @@ export function SettingsView({
   onChangeLinkOpenMode,
   preventSleepDuringImport,
   onChangePreventSleepDuringImport,
+  fullScanMode,
+  onChangeFullScanMode,
   canExport,
   onExport,
 }: Props) {
@@ -99,6 +103,35 @@ export function SettingsView({
               <span
                 className={`h-5 w-5 rounded-full bg-white transition-transform ${
                   preventSleepDuringImport ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </span>
+          </div>
+        </button>
+
+        <button
+          onClick={() => onChangeFullScanMode(!fullScanMode)}
+          className={`w-full rounded-2xl border px-4 py-4 text-left transition-colors ${
+            fullScanMode
+              ? "border-emerald-500 bg-emerald-500/10"
+              : "border-white/10 bg-slate-900/50 hover:border-slate-600"
+          }`}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-slate-100">全件スキャンモード</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-400">
+                重複を見つけても停止せず全ページを走査します。途中で作品を削除した場合など、抜け漏れを補完したいときに使います。
+              </p>
+            </div>
+            <span
+              className={`mt-0.5 shrink-0 inline-flex h-7 w-12 items-center rounded-full p-1 transition-colors ${
+                fullScanMode ? "bg-emerald-500/90" : "bg-slate-700"
+              }`}
+            >
+              <span
+                className={`h-5 w-5 rounded-full bg-white transition-transform ${
+                  fullScanMode ? "translate-x-5" : "translate-x-0"
                 }`}
               />
             </span>

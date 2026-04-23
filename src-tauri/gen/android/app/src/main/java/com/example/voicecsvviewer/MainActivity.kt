@@ -50,9 +50,9 @@ class AppBridgeInterface(private val activity: MainActivity) {
 
   /** DMMライブラリスクレイパーダイアログを開く */
   @JavascriptInterface
-  fun startDmmScraper(existingTitlesJson: String?, keepAwake: Boolean) {
+  fun startDmmScraper(existingTitlesJson: String?, keepAwake: Boolean, fullScanMode: Boolean) {
     activity.runOnUiThread {
-      DmmScraperDialog(activity, existingTitlesJson ?: "[]", keepAwake).show()
+      DmmScraperDialog(activity, existingTitlesJson ?: "[]", keepAwake, fullScanMode).show()
     }
   }
 }
@@ -64,6 +64,7 @@ class DmmScraperDialog(
   private val activity: MainActivity,
   private val existingTitlesJson: String,
   private val keepAwake: Boolean,
+  private val fullScanMode: Boolean,
 ) :
   Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen) {
 
@@ -137,7 +138,7 @@ class DmmScraperDialog(
         text = "取得中..."
         progressTv.visibility = View.VISIBLE
         progressTv.text = "ライブラリを読み込み中..."
-        val script = "window.__EXISTING_TITLES = $existingTitlesJson;\n$SCRAPE_SCRIPT"
+        val script = "window.__EXISTING_TITLES = $existingTitlesJson;\nwindow.__FULL_SCAN = $fullScanMode;\n$SCRAPE_SCRIPT"
         wv.evaluateJavascript(script, null)
       }
     }
@@ -223,6 +224,7 @@ private const val SCRAPE_SCRIPT = """
 (async function() {
   try {
     const delay = ms => new Promise(r => setTimeout(r, ms));
+    const fullScan = Boolean(window.__FULL_SCAN);
     const knownTitles = new Set(
       Array.isArray(window.__EXISTING_TITLES)
         ? window.__EXISTING_TITLES.map(function(t) { return String(t).trim(); }).filter(Boolean)
@@ -233,7 +235,7 @@ private const val SCRAPE_SCRIPT = """
     // 対象ジャンル
     const ALLOWED_GENRES = { 'ボイス': true, 'コミック': true, 'CG': true, '動画': true };
 
-    window.ScraperBridge && window.ScraperBridge.onProgress('ライブラリを読み込み中...');
+    window.ScraperBridge && window.ScraperBridge.onProgress(fullScan ? '全件スキャンモード: 読み込み中...' : 'ライブラリを読み込み中...');
 
     function findGenre(card, link) {
       const el =
@@ -287,7 +289,10 @@ private const val SCRAPE_SCRIPT = """
 
           const title = findTitle(card, link);
           if (!title) return;
-          if (knownTitles.has(title)) { hitDuplicate = true; return; }
+          if (knownTitles.has(title)) {
+            if (!fullScan) { hitDuplicate = true; }
+            return;
+          }
 
           results.set(id, {
             title: title,

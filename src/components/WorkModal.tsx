@@ -4,15 +4,6 @@ import { isTauri } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useAppStore } from "../store";
 
-// Android の JavascriptInterface (Chrome Custom Tabs)
-declare global {
-  interface Window {
-    AppBridge?: {
-      openUrl: (url: string) => void;
-      startDmmScraper?: (existingTitlesJson?: string, keepAwake?: boolean) => void;
-    };
-  }
-}
 
 interface Props {
   work: Work;
