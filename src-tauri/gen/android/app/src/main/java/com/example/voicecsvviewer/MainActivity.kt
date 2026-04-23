@@ -225,49 +225,61 @@ private const val SCRAPE_SCRIPT = """
     const delay = ms => new Promise(r => setTimeout(r, ms));
     const knownTitles = new Set(
       Array.isArray(window.__EXISTING_TITLES)
-        ? window.__EXISTING_TITLES.map(function(title) { return String(title).trim(); }).filter(Boolean)
+        ? window.__EXISTING_TITLES.map(function(t) { return String(t).trim(); }).filter(Boolean)
         : []
     );
     const results = new Map();
-    let hitDuplicate = false;
+
+    // 対象ジャンル
+    const ALLOWED_GENRES = { 'ボイス': true, 'コミック': true, 'CG': true, '動画': true };
 
     window.ScraperBridge && window.ScraperBridge.onProgress('ライブラリを読み込み中...');
 
     function findGenre(card, link) {
-      const genreEl =
+      const el =
         card.querySelector('[class*="Genre"] span') ||
         card.querySelector('span[class*="defaultClass"]') ||
         link.querySelector('span[class*="defaultClass"]');
-      return (genreEl && genreEl.textContent ? genreEl.textContent.trim() : '');
+      return el ? el.textContent.trim() : '';
     }
 
     function findTitle(card, link) {
-      const titleEl =
+      const el =
         card.querySelector('[class*="productTitle"] p') ||
         link.querySelector('[class*="productTitle"] p') ||
         link.querySelector('p');
-      return (titleEl && titleEl.textContent ? titleEl.textContent.trim() : '');
+      return el ? el.textContent.trim() : '';
     }
 
     function findCircle(card, link) {
-      const circleEl =
+      const el =
         card.querySelector('[class*="circleName"]') ||
         link.querySelector('[class*="circleName"]');
-      return (circleEl && circleEl.textContent ? circleEl.textContent.trim() : '');
+      return el ? el.textContent.trim() : '';
     }
 
-    function findThumbnail(card, link, productId) {
-      return 'https://doujin-assets.dmm.co.jp/digital/voice/' + productId + '/' + productId + 'pr.jpg';
+    function findThumbnail(card, link, productId, genre) {
+      // DOMから実際の画像URLを優先取得
+      var img = card.querySelector('img[src*="dmm"]') || link.querySelector('img[src*="dmm"]');
+      if (img && img.src) return img.src;
+      // ジャンル別フォールバックURL
+      var typeMap = { 'ボイス': 'voice', 'コミック': 'comic', 'CG': 'cg', '動画': 'video' };
+      var type = typeMap[genre] || 'voice';
+      return 'https://doujin-assets.dmm.co.jp/digital/' + type + '/' + productId + '/' + productId + 'pr.jpg';
     }
 
+    var hitDuplicate = false;
     function extract() {
       document
         .querySelectorAll('a[href*="/mylibrary/detail/"][href*="product_id="]')
         .forEach(function(link) {
+          if (hitDuplicate) return;
           const m = link.href.match(/product_id=([\w]+)/);
           if (!m) return;
 
           const id = m[1];
+          if (results.has(id)) return;
+
           const card =
             link.closest('div[class*="localListProduct"]') ||
             link.closest('li') ||
@@ -275,21 +287,19 @@ private const val SCRAPE_SCRIPT = """
             document.body;
 
           const genre = findGenre(card, link);
-          if (genre !== 'ボイス') return;
+          if (!ALLOWED_GENRES[genre]) return;
 
           const title = findTitle(card, link);
-          if (!title || results.has(id)) return;
-          if (knownTitles.has(title)) {
-            hitDuplicate = true;
-            return;
-          }
+          if (!title) return;
+          if (knownTitles.has(title)) { hitDuplicate = true; return; }
 
           results.set(id, {
             title: title,
             circle: findCircle(card, link),
             productUrl: 'https://www.dmm.co.jp/dc/-/mylibrary/detail/=/product_id=' + id + '/',
-            thumbnailUrl: findThumbnail(card, link, id),
-            actors: []
+            thumbnailUrl: findThumbnail(card, link, id, genre),
+            actors: [],
+            genre: genre
           });
           knownTitles.add(title);
         });
@@ -314,58 +324,85 @@ private const val SCRAPE_SCRIPT = """
 
     const items = Array.from(results.entries());
     if (items.length === 0) {
-      window.ScraperBridge && window.ScraperBridge.onError('ボイス作品が見つかりませんでした。ライブラリページを開いてください。');
+      window.ScraperBridge && window.ScraperBridge.onError('対象作品が見つかりませんでした。ライブラリページを開いてください。');
       return;
     }
 
-    for (var i = 0; i < items.length; i++) {
-      const id = items[i][0];
-      const item = items[i][1];
-      window.ScraperBridge && window.ScraperBridge.onProgress(
-        '声優取得中... ' + (i + 1) + ' / ' + items.length + '  ' + item.title.slice(0, 20)
-      );
+    // ── 詳細ページから声優・作者を取得するヘルパー ──────────────────────────
+    async function fetchCreators(id, genre) {
       try {
         const res = await fetch('https://www.dmm.co.jp/dc/doujin/-/detail/=/cid=' + id + '/');
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        const detailList = doc.querySelector('.c_list_contentDetailData');
-        if (detailList) {
-          const headings = detailList.querySelectorAll('dt.contentDetailData-hdg');
-          for (var j = 0; j < headings.length; j++) {
-            const ttl = headings[j];
-            if (ttl && ttl.textContent.trim() === '声優') {
-              const detailBox = ttl.nextElementSibling;
-              if (detailBox && detailBox.matches('dd.contentDetailData-box')) {
-                const anchors = detailBox.querySelectorAll('a');
-                const actors = Array.from(anchors)
-                  .map(function(a) { return a.textContent.trim(); })
-                  .filter(Boolean);
-                item.actors = actors.length > 0
-                  ? actors
-                  : detailBox.textContent
-                      .split('/')
-                      .map(function(text) { return text.trim(); })
-                      .filter(Boolean);
+
+        // 指定ラベルの名前リストを取得（新旧レイアウト両対応）
+        function getField(label) {
+          // 新レイアウト: dt.contentDetailData-hdg + dd.contentDetailData-box
+          const headings = doc.querySelectorAll('dt.contentDetailData-hdg');
+          for (var h = 0; h < headings.length; h++) {
+            if (headings[h].textContent.trim() === label) {
+              const dd = headings[h].nextElementSibling;
+              if (dd) {
+                const anchors = dd.querySelectorAll('a');
+                if (anchors.length > 0)
+                  return Array.from(anchors).map(function(a) { return a.textContent.trim(); }).filter(Boolean);
+                return dd.textContent.split('/').map(function(t) { return t.trim(); }).filter(Boolean);
               }
-              break;
             }
           }
-        } else {
+          // 旧レイアウト: .informationList
           const lists = doc.querySelectorAll('.informationList');
           for (var j = 0; j < lists.length; j++) {
             const ttl = lists[j].querySelector('.informationList__ttl');
-            if (ttl && ttl.textContent.trim() === '声優') {
+            if (ttl && ttl.textContent.trim() === label) {
               const anchors = lists[j].querySelectorAll('.informationList__txt a');
-              item.actors = Array.from(anchors).map(function(a) { return a.textContent.trim(); }).filter(Boolean);
-              break;
+              return Array.from(anchors).map(function(a) { return a.textContent.trim(); }).filter(Boolean);
             }
           }
+          return [];
         }
-      } catch(e) {}
+
+        // ジャンル別に取得するフィールドを決定
+        if (genre === 'ボイス') {
+          return getField('声優');
+        } else if (genre === 'コミック' || genre === 'CG') {
+          return getField('作者');
+        } else if (genre === '動画') {
+          // 作者・声優の両方を重複なしで結合
+          const authors = getField('作者');
+          const voices  = getField('声優');
+          const seen = {};
+          return authors.concat(voices).filter(function(name) {
+            if (seen[name]) return false;
+            seen[name] = true;
+            return true;
+          });
+        }
+        return [];
+      } catch(e) { return []; }
+    }
+
+    for (var i = 0; i < items.length; i++) {
+      const id   = items[i][0];
+      const item = items[i][1];
+      window.ScraperBridge && window.ScraperBridge.onProgress(
+        '情報取得中... ' + (i + 1) + ' / ' + items.length + '  [' + item.genre + '] ' + item.title.slice(0, 18)
+      );
+      item.actors = await fetchCreators(id, item.genre);
       await delay(300);
     }
 
-    const payload = items.map(function(entry) { return entry[1]; });
+    // genre フィールドは内部用なので payload から除く
+    const payload = items.map(function(entry) {
+      const item = entry[1];
+      return {
+        title: item.title,
+        circle: item.circle,
+        productUrl: item.productUrl,
+        thumbnailUrl: item.thumbnailUrl,
+        actors: item.actors
+      };
+    });
     window.ScraperBridge && window.ScraperBridge.onScrapedData(JSON.stringify(payload));
 
   } catch(e) {
