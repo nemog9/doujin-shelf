@@ -32,6 +32,7 @@ interface DmmScrapedItem {
   actors?: string[];
   thumbnailUrl?: string;
   productUrl?: string;
+  genre?: string;
 }
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
     works,
     favorites,
     searchQuery,
+    selectedGenre,
     sortBy,
     linkOpenMode,
     preventSleepDuringImport,
@@ -48,6 +50,7 @@ export default function App() {
     removeWork,
     toggleFavorite,
     setSearchQuery,
+    setSelectedGenre,
     setSortBy,
     setLinkOpenMode,
     setPreventSleepDuringImport,
@@ -63,16 +66,17 @@ export default function App() {
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
     setSearchQuery("");
+    setSelectedGenre("");
   };
 
   const filtered = useMemo(
-    () => getFilteredWorks(works, searchQuery, sortBy),
-    [works, searchQuery, sortBy]
+    () => getFilteredWorks(works, searchQuery, sortBy, selectedGenre),
+    [works, searchQuery, sortBy, selectedGenre]
   );
 
   const favoriteWorks = useMemo(
-    () => getFilteredWorks(works.filter((w) => favorites.includes(w.id)), searchQuery, sortBy),
-    [works, favorites, searchQuery, sortBy]
+    () => getFilteredWorks(works.filter((w) => favorites.includes(w.id)), searchQuery, sortBy, selectedGenre),
+    [works, favorites, searchQuery, sortBy, selectedGenre]
   );
 
   const handleImport = useCallback(async () => {
@@ -115,6 +119,7 @@ export default function App() {
         actors: item.actors ?? [],
         thumbnailUrl: item.thumbnailUrl ?? "",
         productUrl: item.productUrl ?? "",
+        genre: item.genre ?? "",
       }, now))
       .filter((work): work is Work => work !== null);
 
@@ -224,13 +229,13 @@ export default function App() {
       )}
 
       {/* Active search indicator */}
-      {searchQuery && activeTab !== "random" && activeTab !== "settings" && (
+      {(searchQuery || selectedGenre) && activeTab !== "random" && activeTab !== "settings" && (
         <div className="px-3 py-1.5 flex items-center gap-2 shrink-0">
           <span className="text-xs text-slate-400">
-            「{searchQuery}」— {displayedWorks.length}件
+            {[searchQuery && `「${searchQuery}」`, selectedGenre && `[${selectedGenre}]`].filter(Boolean).join(" ")} — {displayedWorks.length}件
           </span>
           <button
-            onClick={() => setSearchQuery("")}
+            onClick={() => { setSearchQuery(""); setSelectedGenre(""); }}
             className="text-[11px] text-violet-400 hover:underline"
           >
             クリア
@@ -269,9 +274,9 @@ export default function App() {
             </div>
           ) : displayedWorks.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-sm">
-              <p>「{searchQuery}」に一致する作品がありません</p>
+              <p>条件に一致する作品がありません</p>
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => { setSearchQuery(""); setSelectedGenre(""); }}
                 className="mt-2 text-violet-400 text-xs hover:underline"
               >
                 検索をクリア
@@ -304,7 +309,7 @@ export default function App() {
       {activeTab !== "random" && activeTab !== "settings" && (
         <SearchFAB
           onClick={() => setSearchOpen(true)}
-          hasActiveQuery={!!searchQuery}
+          hasActiveQuery={!!(searchQuery || selectedGenre)}
         />
       )}
 
@@ -313,6 +318,8 @@ export default function App() {
         <SearchModal
           query={searchQuery}
           onQueryChange={setSearchQuery}
+          selectedGenre={selectedGenre}
+          onGenreChange={setSelectedGenre}
           sortBy={sortBy}
           onSortChange={(s) => setSortBy(s as SortField)}
           totalCount={activeTab === "favorites" ? favorites.length : works.length}

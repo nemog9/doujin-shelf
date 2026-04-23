@@ -46,6 +46,7 @@ interface WorkInput {
   actors?: string[];
   thumbnailUrl?: string;
   productUrl: string;
+  genre?: string;
 }
 
 type RawRow = Record<string, string>;
@@ -115,6 +116,7 @@ export function createWork(input: WorkInput, importedAt = new Date().toISOString
     thumbnailUrl: input.thumbnailUrl?.trim() ?? "",
     productUrl,
     source: detectSource(productUrl),
+    genre: input.genre?.trim() ?? "",
     importedAt,
   };
 }

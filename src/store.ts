@@ -6,6 +6,7 @@ interface AppState {
   works: Work[];
   favorites: string[];
   searchQuery: string;
+  selectedGenre: string;
   sortBy: SortField;
   linkOpenMode: LinkOpenMode;
   preventSleepDuringImport: boolean;
@@ -16,6 +17,7 @@ interface AppState {
   removeWork: (id: string) => void;
   toggleFavorite: (id: string) => void;
   setSearchQuery: (q: string) => void;
+  setSelectedGenre: (genre: string) => void;
   setSortBy: (s: SortField) => void;
   setLinkOpenMode: (mode: LinkOpenMode) => void;
   setPreventSleepDuringImport: (enabled: boolean) => void;
@@ -30,6 +32,7 @@ export const useAppStore = create<AppState>()(
       works: [],
       favorites: [],
       searchQuery: "",
+      selectedGenre: "",
       sortBy: "importedAt",
       linkOpenMode: "external",
       preventSleepDuringImport: true,
@@ -67,6 +70,7 @@ export const useAppStore = create<AppState>()(
       },
 
       setSearchQuery: (searchQuery) => set({ searchQuery }),
+      setSelectedGenre: (selectedGenre) => set({ selectedGenre }),
       setSortBy: (sortBy) => set({ sortBy }),
       setLinkOpenMode: (linkOpenMode) => set({ linkOpenMode }),
       setPreventSleepDuringImport: (preventSleepDuringImport) => set({ preventSleepDuringImport }),
@@ -87,16 +91,27 @@ export const useAppStore = create<AppState>()(
 );
 
 // Derived: filtered + sorted works
-export function getFilteredWorks(works: Work[], query: string, sortBy: SortField): Work[] {
+export function getFilteredWorks(
+  works: Work[],
+  query: string,
+  sortBy: SortField,
+  genre = ""
+): Work[] {
   const q = query.trim().toLowerCase();
-  let filtered = q
-    ? works.filter(
-        (w) =>
-          w.title.toLowerCase().includes(q) ||
-          w.circle.toLowerCase().includes(q) ||
-          w.actors.some((a) => a.toLowerCase().includes(q))
-      )
-    : works;
+  let filtered = works;
+
+  if (genre) {
+    filtered = filtered.filter((w) => w.genre === genre);
+  }
+
+  if (q) {
+    filtered = filtered.filter(
+      (w) =>
+        w.title.toLowerCase().includes(q) ||
+        w.circle.toLowerCase().includes(q) ||
+        w.actors.some((a) => a.toLowerCase().includes(q))
+    );
+  }
 
   return [...filtered].sort((a, b) => {
     switch (sortBy) {

@@ -265,7 +265,7 @@ private const val SCRAPE_SCRIPT = """
       // ジャンル別フォールバックURL
       var typeMap = { 'ボイス': 'voice', 'コミック': 'comic', 'CG': 'cg', '動画': 'video' };
       var type = typeMap[genre] || 'voice';
-      return 'https://doujin-assets.dmm.co.jp/digital/' + type + '/' + productId + '/' + productId + 'pr.jpg';
+      return 'https://doujin-assets.dmm.co.jp/digital/' + type + '/' + productId + '/' + productId + 'pl.jpg';
     }
 
     var hitDuplicate = false;
@@ -392,7 +392,6 @@ private const val SCRAPE_SCRIPT = """
       await delay(300);
     }
 
-    // genre フィールドは内部用なので payload から除く
     const payload = items.map(function(entry) {
       const item = entry[1];
       return {
@@ -400,7 +399,8 @@ private const val SCRAPE_SCRIPT = """
         circle: item.circle,
         productUrl: item.productUrl,
         thumbnailUrl: item.thumbnailUrl,
-        actors: item.actors
+        actors: item.actors,
+        genre: item.genre
       };
     });
     window.ScraperBridge && window.ScraperBridge.onScrapedData(JSON.stringify(payload));

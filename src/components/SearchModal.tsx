@@ -4,6 +4,8 @@ import { SortField } from "../types";
 interface Props {
   query: string;
   onQueryChange: (q: string) => void;
+  selectedGenre: string;
+  onGenreChange: (genre: string) => void;
   sortBy: SortField;
   onSortChange: (s: SortField) => void;
   totalCount: number;
@@ -11,9 +13,25 @@ interface Props {
   onClose: () => void;
 }
 
+const GENRE_OPTIONS = [
+  { value: "", label: "すべて" },
+  { value: "ボイス", label: "ボイス" },
+  { value: "コミック", label: "コミック" },
+  { value: "動画", label: "動画" },
+  { value: "CG", label: "CG" },
+];
+
+const SORT_OPTIONS: { value: SortField; label: string }[] = [
+  { value: "importedAt", label: "追加順" },
+  { value: "title", label: "タイトル" },
+  { value: "circle", label: "サークル" },
+];
+
 export function SearchModal({
   query,
   onQueryChange,
+  selectedGenre,
+  onGenreChange,
   sortBy,
   onSortChange,
   totalCount,
@@ -22,19 +40,16 @@ export function SearchModal({
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // フォーカス
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 80);
     return () => clearTimeout(t);
   }, []);
 
-  // 背景スクロール禁止
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
 
-  // Escape で閉じる
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -43,11 +58,7 @@ export function SearchModal({
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const SORT_OPTIONS: { value: SortField; label: string }[] = [
-    { value: "importedAt", label: "追加順" },
-    { value: "title", label: "タイトル" },
-    { value: "circle", label: "サークル" },
-  ];
+  const isFiltered = query || selectedGenre;
 
   return (
     <div
@@ -84,10 +95,27 @@ export function SearchModal({
           )}
         </div>
 
+        {/* カテゴリ絞り込み */}
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+          {GENRE_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => onGenreChange(opt.value)}
+              className={`text-xs px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
+                selectedGenre === opt.value
+                  ? "bg-sky-600 text-white"
+                  : "bg-slate-800 text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
         {/* ソート + 件数 */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-slate-400">
-            {query ? `${filteredCount} / ${totalCount}件` : `全${totalCount}件`}
+            {isFiltered ? `${filteredCount} / ${totalCount}件` : `全${totalCount}件`}
           </span>
           <div className="flex gap-1.5">
             {SORT_OPTIONS.map((opt) => (
