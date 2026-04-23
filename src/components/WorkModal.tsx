@@ -125,7 +125,7 @@ export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
           {/* Actors */}
           {work.actors.length > 0 && (
             <div>
-              <p className="text-xs text-slate-500 mb-1.5">声優</p>
+              <p className="text-xs text-slate-500 mb-1.5">アーティスト</p>
               <div className="flex flex-wrap gap-1.5">
                 {work.actors.map((a) => (
                   <button
