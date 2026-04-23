@@ -40,6 +40,14 @@ function parseActors(value: string): string[] {
     .filter(Boolean);
 }
 
+interface WorkInput {
+  title: string;
+  circle?: string;
+  actors?: string[];
+  thumbnailUrl?: string;
+  productUrl: string;
+}
+
 type RawRow = Record<string, string>;
 
 // Flexible header → field mapping
@@ -90,6 +98,27 @@ export interface ParseCSVResult {
   errors: number;
 }
 
+export function createWork(input: WorkInput, importedAt = new Date().toISOString()): Work | null {
+  const title = input.title.trim();
+  const rawProductUrl = input.productUrl.trim();
+  const productId = extractDmmProductId(rawProductUrl);
+  const productUrl = normalizeProductUrl(rawProductUrl);
+
+  if (!title || !productUrl) return null;
+
+  return {
+    id: hashUrl(productUrl),
+    productId: productId || undefined,
+    title,
+    circle: input.circle?.trim() ?? "",
+    actors: (input.actors ?? []).map((actor) => actor.trim()).filter(Boolean),
+    thumbnailUrl: input.thumbnailUrl?.trim() ?? "",
+    productUrl,
+    source: detectSource(productUrl),
+    importedAt,
+  };
+}
+
 export function parseCSV(csvContent: string): ParseCSVResult {
   const result = Papa.parse<RawRow>(csvContent, {
     header: true,
@@ -124,27 +153,23 @@ export function parseCSV(csvContent: string): ParseCSVResult {
       }
     }
 
-    const title = (partial.title as string | undefined) ?? "";
-    const rawProductUrl = (partial.productUrl as string | undefined) ?? "";
-    const productId = extractDmmProductId(rawProductUrl);
-    const productUrl = normalizeProductUrl(rawProductUrl);
+    const work = createWork(
+      {
+        title: (partial.title as string | undefined) ?? "",
+        circle: (partial.circle as string | undefined) ?? "",
+        actors: (partial.actors as string[] | undefined) ?? [],
+        thumbnailUrl: (partial.thumbnailUrl as string | undefined) ?? "",
+        productUrl: (partial.productUrl as string | undefined) ?? "",
+      },
+      now
+    );
 
-    if (!title || !productUrl) {
+    if (!work) {
       errors++;
       continue;
     }
 
-    works.push({
-      id: hashUrl(productUrl),
-      productId: productId || undefined,
-      title,
-      circle: (partial.circle as string | undefined) ?? "",
-      actors: (partial.actors as string[] | undefined) ?? [],
-      thumbnailUrl: (partial.thumbnailUrl as string | undefined) ?? "",
-      productUrl,
-      source: detectSource(productUrl),
-      importedAt: now,
-    });
+    works.push(work);
   }
 
   return { works, errors: errors + result.errors.length };
