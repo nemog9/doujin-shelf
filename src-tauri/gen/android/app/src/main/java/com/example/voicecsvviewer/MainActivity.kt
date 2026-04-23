@@ -50,9 +50,9 @@ class AppBridgeInterface(private val activity: MainActivity) {
 
   /** DMMライブラリスクレイパーダイアログを開く */
   @JavascriptInterface
-  fun startDmmScraper() {
+  fun startDmmScraper(existingTitlesJson: String?, keepAwake: Boolean) {
     activity.runOnUiThread {
-      DmmScraperDialog(activity).show()
+      DmmScraperDialog(activity, existingTitlesJson ?: "[]", keepAwake).show()
     }
   }
 }
@@ -60,12 +60,19 @@ class AppBridgeInterface(private val activity: MainActivity) {
 // ─── DmmScraperDialog ─────────────────────────────────────────────────────────
 
 @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
-class DmmScraperDialog(private val activity: MainActivity) :
+class DmmScraperDialog(
+  private val activity: MainActivity,
+  private val existingTitlesJson: String,
+  private val keepAwake: Boolean,
+) :
   Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen) {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     window?.requestFeature(Window.FEATURE_NO_TITLE)
+    if (keepAwake) {
+      activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
 
     val root = FrameLayout(activity)
     setContentView(root)
@@ -130,7 +137,8 @@ class DmmScraperDialog(private val activity: MainActivity) :
         text = "取得中..."
         progressTv.visibility = View.VISIBLE
         progressTv.text = "ライブラリを読み込み中..."
-        wv.evaluateJavascript(SCRAPE_SCRIPT, null)
+        val script = "window.__EXISTING_TITLES = $existingTitlesJson;\n$SCRAPE_SCRIPT"
+        wv.evaluateJavascript(script, null)
       }
     }
 
@@ -161,6 +169,13 @@ class DmmScraperDialog(private val activity: MainActivity) :
   ).also { it.topMargin = dp(48); it.rightMargin = dp(12) }
 
   private fun dp(v: Int) = (v * Resources.getSystem().displayMetrics.density).toInt()
+
+  override fun dismiss() {
+    if (keepAwake) {
+      activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+    super.dismiss()
+  }
 }
 
 // ─── ScraperBridgeInterface ───────────────────────────────────────────────────
@@ -208,37 +223,85 @@ private const val SCRAPE_SCRIPT = """
 (async function() {
   try {
     const delay = ms => new Promise(r => setTimeout(r, ms));
+    const knownTitles = new Set(
+      Array.isArray(window.__EXISTING_TITLES)
+        ? window.__EXISTING_TITLES.map(function(title) { return String(title).trim(); }).filter(Boolean)
+        : []
+    );
     const results = new Map();
+    let hitDuplicate = false;
 
     window.ScraperBridge && window.ScraperBridge.onProgress('ライブラリを読み込み中...');
 
+    function findGenre(card, link) {
+      const genreEl =
+        card.querySelector('[class*="Genre"] span') ||
+        card.querySelector('span[class*="defaultClass"]') ||
+        link.querySelector('span[class*="defaultClass"]');
+      return (genreEl && genreEl.textContent ? genreEl.textContent.trim() : '');
+    }
+
+    function findTitle(card, link) {
+      const titleEl =
+        card.querySelector('[class*="productTitle"] p') ||
+        link.querySelector('[class*="productTitle"] p') ||
+        link.querySelector('p');
+      return (titleEl && titleEl.textContent ? titleEl.textContent.trim() : '');
+    }
+
+    function findCircle(card, link) {
+      const circleEl =
+        card.querySelector('[class*="circleName"]') ||
+        link.querySelector('[class*="circleName"]');
+      return (circleEl && circleEl.textContent ? circleEl.textContent.trim() : '');
+    }
+
+    function findThumbnail(card, link, productId) {
+      return 'https://doujin-assets.dmm.co.jp/digital/voice/' + productId + '/' + productId + 'pr.jpg';
+    }
+
     function extract() {
-      document.querySelectorAll('.localListProductzKID2').forEach(function(el) {
-        const genre = el.querySelector('.defaultClassmE6be');
-        if (!genre || genre.textContent.trim() !== 'ボイス') return;
-        const a = el.querySelector('a[href]');
-        const titleEl = el.querySelector('.productTitleCMVya p');
-        const circleEl = el.querySelector('.circleNameGWNom');
-        if (!a || !titleEl) return;
-        const m = a.href.match(/product_id=([\w]+)/);
-        if (!m) return;
-        const id = m[1];
-        const title = titleEl.textContent.trim();
-        if (!title || results.has(id)) return;
-        results.set(id, {
-          title: title,
-          circle: (circleEl ? circleEl.textContent.trim() : ''),
-          productUrl: 'https://www.dmm.co.jp/dc/-/mylibrary/detail/=/product_id=' + id + '/',
-          thumbnailUrl: 'https://doujin-assets.dmm.co.jp/digital/voice/' + id + '/' + id + 'pr.jpg',
-          actors: []
+      document
+        .querySelectorAll('a[href*="/mylibrary/detail/"][href*="product_id="]')
+        .forEach(function(link) {
+          const m = link.href.match(/product_id=([\w]+)/);
+          if (!m) return;
+
+          const id = m[1];
+          const card =
+            link.closest('div[class*="localListProduct"]') ||
+            link.closest('li') ||
+            link.parentElement ||
+            document.body;
+
+          const genre = findGenre(card, link);
+          if (genre !== 'ボイス') return;
+
+          const title = findTitle(card, link);
+          if (!title || results.has(id)) return;
+          if (knownTitles.has(title)) {
+            hitDuplicate = true;
+            return;
+          }
+
+          results.set(id, {
+            title: title,
+            circle: findCircle(card, link),
+            productUrl: 'https://www.dmm.co.jp/dc/-/mylibrary/detail/=/product_id=' + id + '/',
+            thumbnailUrl: findThumbnail(card, link, id),
+            actors: []
+          });
+          knownTitles.add(title);
         });
-      });
     }
 
     var unchanged = 0, prev = 0;
     while (unchanged < 3) {
       extract();
-      const loader = document.querySelector('.ajaxAreaxcTPC, .loadingIconmW5s8');
+      if (hitDuplicate) break;
+      const loader = document.querySelector(
+        '#loading, [class*="ajaxArea"], [class*="loadingIcon"], img[alt*="ローディング"]'
+      );
       if (loader) loader.scrollIntoView({behavior: 'smooth'});
       else window.scrollTo(0, document.body.scrollHeight);
       await delay(2500);
@@ -265,13 +328,37 @@ private const val SCRAPE_SCRIPT = """
         const res = await fetch('https://www.dmm.co.jp/dc/doujin/-/detail/=/cid=' + id + '/');
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        const lists = doc.querySelectorAll('.informationList');
-        for (var j = 0; j < lists.length; j++) {
-          const ttl = lists[j].querySelector('.informationList__ttl');
-          if (ttl && ttl.textContent.trim() === '声優') {
-            const anchors = lists[j].querySelectorAll('.informationList__txt a');
-            item.actors = Array.from(anchors).map(function(a) { return a.textContent.trim(); }).filter(Boolean);
-            break;
+        const detailList = doc.querySelector('.c_list_contentDetailData');
+        if (detailList) {
+          const headings = detailList.querySelectorAll('dt.contentDetailData-hdg');
+          for (var j = 0; j < headings.length; j++) {
+            const ttl = headings[j];
+            if (ttl && ttl.textContent.trim() === '声優') {
+              const detailBox = ttl.nextElementSibling;
+              if (detailBox && detailBox.matches('dd.contentDetailData-box')) {
+                const anchors = detailBox.querySelectorAll('a');
+                const actors = Array.from(anchors)
+                  .map(function(a) { return a.textContent.trim(); })
+                  .filter(Boolean);
+                item.actors = actors.length > 0
+                  ? actors
+                  : detailBox.textContent
+                      .split('/')
+                      .map(function(text) { return text.trim(); })
+                      .filter(Boolean);
+              }
+              break;
+            }
+          }
+        } else {
+          const lists = doc.querySelectorAll('.informationList');
+          for (var j = 0; j < lists.length; j++) {
+            const ttl = lists[j].querySelector('.informationList__ttl');
+            if (ttl && ttl.textContent.trim() === '声優') {
+              const anchors = lists[j].querySelectorAll('.informationList__txt a');
+              item.actors = Array.from(anchors).map(function(a) { return a.textContent.trim(); }).filter(Boolean);
+              break;
+            }
           }
         }
       } catch(e) {}

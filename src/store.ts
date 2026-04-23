@@ -8,14 +8,17 @@ interface AppState {
   searchQuery: string;
   sortBy: SortField;
   linkOpenMode: LinkOpenMode;
+  preventSleepDuringImport: boolean;
   lastImportResult: ImportResult | null;
   selectedWork: Work | null;
 
-  addWorks: (incoming: Work[], filename: string) => ImportResult;
+  addWorks: (incoming: Work[], filename: string, errors?: number) => ImportResult;
+  removeWork: (id: string) => void;
   toggleFavorite: (id: string) => void;
   setSearchQuery: (q: string) => void;
   setSortBy: (s: SortField) => void;
   setLinkOpenMode: (mode: LinkOpenMode) => void;
+  setPreventSleepDuringImport: (enabled: boolean) => void;
   selectWork: (work: Work | null) => void;
   dismissImportResult: () => void;
   clearAll: () => void;
@@ -29,10 +32,11 @@ export const useAppStore = create<AppState>()(
       searchQuery: "",
       sortBy: "importedAt",
       linkOpenMode: "external",
+      preventSleepDuringImport: true,
       lastImportResult: null,
       selectedWork: null,
 
-      addWorks: (incoming, filename) => {
+      addWorks: (incoming, filename, errors = 0) => {
         const existing = get().works;
         const existingIds = new Set(existing.map((w) => w.id));
         const added = incoming.filter((w) => !existingIds.has(w.id));
@@ -41,13 +45,20 @@ export const useAppStore = create<AppState>()(
         const result: ImportResult = {
           added: added.length,
           duplicates,
-          errors: 0,
+          errors,
           total: incoming.length,
           filename,
         };
 
         set({ works: [...existing, ...added], lastImportResult: result });
         return result;
+      },
+
+      removeWork: (id) => {
+        const works = get().works.filter((work) => work.id !== id);
+        const favorites = get().favorites.filter((favoriteId) => favoriteId !== id);
+        const selectedWork = get().selectedWork?.id === id ? null : get().selectedWork;
+        set({ works, favorites, selectedWork });
       },
 
       toggleFavorite: (id) => {
@@ -58,6 +69,7 @@ export const useAppStore = create<AppState>()(
       setSearchQuery: (searchQuery) => set({ searchQuery }),
       setSortBy: (sortBy) => set({ sortBy }),
       setLinkOpenMode: (linkOpenMode) => set({ linkOpenMode }),
+      setPreventSleepDuringImport: (preventSleepDuringImport) => set({ preventSleepDuringImport }),
       selectWork: (selectedWork) => set({ selectedWork }),
       dismissImportResult: () => set({ lastImportResult: null }),
       clearAll: () => set({ works: [], lastImportResult: null }),
@@ -68,6 +80,7 @@ export const useAppStore = create<AppState>()(
         works: state.works,
         favorites: state.favorites,
         linkOpenMode: state.linkOpenMode,
+        preventSleepDuringImport: state.preventSleepDuringImport,
       }),
     }
   )

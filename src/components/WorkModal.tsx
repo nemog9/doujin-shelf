@@ -7,7 +7,10 @@ import { useAppStore } from "../store";
 // Android の JavascriptInterface (Chrome Custom Tabs)
 declare global {
   interface Window {
-    AppBridge?: { openUrl: (url: string) => void };
+    AppBridge?: {
+      openUrl: (url: string) => void;
+      startDmmScraper?: (existingTitlesJson?: string, keepAwake?: boolean) => void;
+    };
   }
 }
 
@@ -15,6 +18,7 @@ interface Props {
   work: Work;
   onClose: () => void;
   onFilterBy: (query: string) => void;
+  onDelete: () => void;
 }
 
 const SOURCE_LABEL: Record<Work["source"], string> = {
@@ -37,7 +41,7 @@ function getOpenUrl(work: Work): string {
     : work.productUrl;
 }
 
-export function WorkModal({ work, onClose, onFilterBy }: Props) {
+export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
   const [imgError, setImgError] = useState(false);
   const linkOpenMode = useAppStore((state) => state.linkOpenMode);
 
@@ -85,7 +89,13 @@ export function WorkModal({ work, onClose, onFilterBy }: Props) {
           <div className="w-10 h-1 bg-slate-600 rounded-full" />
         </div>
 
-        <div className="flex justify-end px-4 pt-2">
+        <div className="flex items-center justify-between px-4 pt-2">
+          <button
+            onClick={onDelete}
+            className="text-[11px] text-rose-400 hover:text-rose-300 px-1.5 py-1"
+          >
+            削除
+          </button>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-200 text-sm p-1">
             ✕ 閉じる
           </button>

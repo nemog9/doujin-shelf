@@ -3,6 +3,10 @@ import { LinkOpenMode } from "../types";
 interface Props {
   linkOpenMode: LinkOpenMode;
   onChangeLinkOpenMode: (mode: LinkOpenMode) => void;
+  preventSleepDuringImport: boolean;
+  onChangePreventSleepDuringImport: (enabled: boolean) => void;
+  canExport: boolean;
+  onExport: () => void;
 }
 
 const OPTIONS: { id: LinkOpenMode; title: string; description: string }[] = [
@@ -18,7 +22,14 @@ const OPTIONS: { id: LinkOpenMode; title: string; description: string }[] = [
   },
 ];
 
-export function SettingsView({ linkOpenMode, onChangeLinkOpenMode }: Props) {
+export function SettingsView({
+  linkOpenMode,
+  onChangeLinkOpenMode,
+  preventSleepDuringImport,
+  onChangePreventSleepDuringImport,
+  canExport,
+  onExport,
+}: Props) {
   return (
     <main className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-24 space-y-4">
       <section className="space-y-2">
@@ -42,18 +53,20 @@ export function SettingsView({ linkOpenMode, onChangeLinkOpenMode }: Props) {
               }`}
             >
               <div className="flex items-start justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-100">{option.title}</p>
                   <p className="mt-1 text-xs leading-relaxed text-slate-400">{option.description}</p>
                 </div>
                 <span
-                  className={`mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full border text-[11px] ${
-                    active
-                      ? "border-violet-400 bg-violet-500 text-white"
-                      : "border-slate-600 text-slate-500"
+                  className={`mt-0.5 shrink-0 inline-flex h-7 w-12 items-center rounded-full p-1 transition-colors ${
+                    active ? "bg-violet-500/90" : "bg-slate-700"
                   }`}
                 >
-                  {active ? "✓" : ""}
+                  <span
+                    className={`h-5 w-5 rounded-full bg-white transition-transform ${
+                      active ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
                 </span>
               </div>
             </button>
@@ -61,12 +74,56 @@ export function SettingsView({ linkOpenMode, onChangeLinkOpenMode }: Props) {
         })}
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
-        <h3 className="text-sm font-medium text-slate-100">メモ</h3>
-        <p className="mt-2 text-xs leading-relaxed text-slate-400">
-          Android単体で作品取得まで完結させる場合は、アプリ内ブラウザ側でDMMログイン状態を保ちながらライブラリDOMを読む流れが有力です。
-        </p>
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold text-slate-100">DMM取得</h2>
+        <button
+          onClick={() => onChangePreventSleepDuringImport(!preventSleepDuringImport)}
+          className={`w-full rounded-2xl border px-4 py-4 text-left transition-colors ${
+            preventSleepDuringImport
+              ? "border-emerald-500 bg-emerald-500/10"
+              : "border-white/10 bg-slate-900/50 hover:border-slate-600"
+          }`}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-slate-100">取得中はスリープさせない</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-400">
+                AndroidでDMMライブラリ取得を走らせている間だけ画面スリープを抑えます。
+              </p>
+            </div>
+            <span
+              className={`mt-0.5 shrink-0 inline-flex h-7 w-12 items-center rounded-full p-1 transition-colors ${
+                preventSleepDuringImport ? "bg-emerald-500/90" : "bg-slate-700"
+              }`}
+            >
+              <span
+                className={`h-5 w-5 rounded-full bg-white transition-transform ${
+                  preventSleepDuringImport ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </span>
+          </div>
+        </button>
       </section>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold text-slate-100">データ書き出し</h2>
+        <button
+          onClick={onExport}
+          disabled={!canExport}
+          className={`w-full rounded-2xl border px-4 py-4 text-left transition-colors ${
+            canExport
+              ? "border-sky-500 bg-sky-500/10 hover:bg-sky-500/15"
+              : "border-white/10 bg-slate-900/40 text-slate-500"
+          }`}
+        >
+          <p className="text-sm font-medium text-slate-100">CSVを書き出す</p>
+          <p className="mt-1 text-xs leading-relaxed text-slate-400">
+            現在のライブラリをCSVにして、保存先を選んで書き出します。
+          </p>
+        </button>
+      </section>
+
     </main>
   );
 }

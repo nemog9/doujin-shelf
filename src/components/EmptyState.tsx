@@ -1,8 +1,9 @@
 interface Props {
   onImport: () => void;
+  onImportFromDmm?: () => void;
 }
 
-export function EmptyState({ onImport }: Props) {
+export function EmptyState({ onImport, onImportFromDmm }: Props) {
   return (
     <div className="flex flex-col items-center justify-center h-[60dvh] px-8 text-center space-y-4">
       <div className="text-6xl">🎵</div>
@@ -12,12 +13,22 @@ export function EmptyState({ onImport }: Props) {
           CSVファイルをインポートして<br />音声作品を追加してください
         </p>
       </div>
-      <button
-        onClick={onImport}
-        className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm"
-      >
-        CSVをインポート
-      </button>
+      <div className="flex flex-col gap-2 w-full max-w-xs">
+        {onImportFromDmm && (
+          <button
+            onClick={onImportFromDmm}
+            className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm"
+          >
+            DMMライブラリから取得
+          </button>
+        )}
+        <button
+          onClick={onImport}
+          className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm"
+        >
+          CSVをインポート
+        </button>
+      </div>
 
       <details className="w-full max-w-xs">
         <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-300 select-none">
