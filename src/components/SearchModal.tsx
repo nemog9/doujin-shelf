@@ -59,6 +59,7 @@ export function SearchModal({
     <div
       className="fixed inset-0 z-50 flex flex-col items-stretch"
       onClick={onClose}
+      style={{ touchAction: "none" }}
     >
       {/* パネル — 画面上部に固定 */}
       <div

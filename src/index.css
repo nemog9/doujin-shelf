@@ -6,15 +6,25 @@
   html {
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
+    /* ドキュメント自体をスクロール不可にする */
+    height: 100%;
+    overflow: hidden;
   }
 
   body {
     @apply bg-[#0f0f1a] text-slate-100 antialiased;
     padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
     /* スクロールのカクつき軽減 */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: none;
+    /* ドキュメント自体をスクロール不可にする */
+    height: 100%;
+    overflow: hidden;
+  }
+
+  #root {
+    height: 100%;
+    overflow: hidden;
   }
 
   * {

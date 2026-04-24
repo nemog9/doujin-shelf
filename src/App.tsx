@@ -206,7 +206,7 @@ export default function App() {
   const canExport = isTauri() && works.length > 0;
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="h-dvh flex flex-col overflow-hidden">
       {/* Header */}
       <header className="px-4 pt-3 pb-2 flex items-center justify-between shrink-0">
         <h1 className="text-base font-bold text-slate-100 tracking-tight">

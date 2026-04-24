@@ -70,6 +70,7 @@ export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
     <div
       className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}
+      style={{ touchAction: "none" }}
     >
       <div
         className="bg-[#1a1a2e] w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl overflow-hidden max-h-[92dvh] flex flex-col"
