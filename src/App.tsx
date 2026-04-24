@@ -279,7 +279,7 @@ export default function App() {
         />
       ) : (
         <main
-          className="flex-1 overflow-y-auto scrollbar-hide"
+          className={`flex-1 scrollbar-hide ${searchOpen || !!selectedWork ? "overflow-hidden" : "overflow-y-auto"}`}
           style={{
             WebkitOverflowScrolling: "touch",
             transform: "translateZ(0)",
