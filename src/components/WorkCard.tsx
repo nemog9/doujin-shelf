@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Work } from "../types";
+import { HeartIcon } from "./HeartIcon";
 
 interface Props {
   work: Work;
@@ -42,11 +43,11 @@ export function WorkCard({ work, onClick, isFavorite, onToggleFavorite }: Props)
         {/* Favorite button */}
         <button
           onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-          className={`absolute bottom-1.5 right-1.5 w-7 h-7 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm text-base transition-colors ${
-            isFavorite ? "text-pink-400" : "text-slate-400"
+          className={`absolute bottom-1.5 right-1.5 w-7 h-7 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm transition-colors ${
+            isFavorite ? "text-pink-400" : "text-slate-400/80"
           }`}
         >
-          {isFavorite ? "♥" : "♡"}
+          <HeartIcon filled={isFavorite} size={15} />
         </button>
       </div>
 
