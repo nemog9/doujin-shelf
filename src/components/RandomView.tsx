@@ -72,7 +72,7 @@ export function RandomView({ works, onSelect }: Props) {
       </div>
 
       {/* ボタン — 常に下部に固定（BottomNav分の余白を確保） */}
-      <div className="flex justify-center pb-24">
+      <div className="flex justify-center pb-36">
         <button
           onClick={refresh}
           className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-medium px-6 py-3 rounded-2xl transition-colors text-sm"
