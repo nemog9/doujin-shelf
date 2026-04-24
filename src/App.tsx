@@ -210,7 +210,7 @@ export default function App() {
       {/* Header */}
       <header className="px-4 pt-3 pb-2 flex items-center justify-between shrink-0">
         <h1 className="text-base font-bold text-slate-100 tracking-tight">
-          🎵 音声作品ビューワー
+          📚 DoujinShelf
         </h1>
         <div className="flex items-center gap-2">
           {canImportFromDmm && (

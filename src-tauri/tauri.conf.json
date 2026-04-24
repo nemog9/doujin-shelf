@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "voice-csv-viewer",
+  "productName": "DoujinShelf",
   "version": "0.1.0",
   "identifier": "com.example.voicecsvviewer",
   "build": {
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "音声作品ビューワー",
+        "title": "DoujinShelf",
         "width": 800,
         "height": 600,
         "resizable": true,

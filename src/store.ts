@@ -83,7 +83,7 @@ export const useAppStore = create<AppState>()(
       clearAll: () => set({ works: [], favorites: [], selectedWork: null, lastImportResult: null }),
     }),
     {
-      name: "voice-csv-viewer",
+      name: "doujin-shelf",
       partialize: (state) => ({
         works: state.works,
         favorites: state.favorites,
