@@ -41,6 +41,11 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install
 
+      - name: Initialize Android project
+        env:
+          NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
+        run: pnpm tauri android init
+
       - name: Build Android APK (debug)
         env:
           NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
