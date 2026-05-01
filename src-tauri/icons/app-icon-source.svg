@@ -1,0 +1,27 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#2d1b69"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="48%" r="45%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="icon-color" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#f0eaff"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
+
+  <!-- Subtle violet glow -->
+  <ellipse cx="512" cy="492" rx="370" ry="370" fill="url(#glow)"/>
+
+  <!-- Bookcase icon: original 32x32 → scale 26 = 832px, centered with 96px margin -->
+  <g transform="translate(96, 96) scale(26)" fill="url(#icon-color)">
+    <path d="M30,1H2A1,1,0,0,0,1,2V30a1,1,0,0,0,2,0V29H29v1a1,1,0,0,0,2,0V2A1,1,0,0,0,30,1ZM22,24V19h1v5Zm-3,0V19h1v5Zm-2.66,0L17,21.79V24Zm-3-.53,1.43-4.79,1,.28-1.43,4.8ZM25,19h1v5H25Zm2-2H18a1,1,0,0,0-.73.33l-2.86-.85a1,1,0,0,0-.76.07,1,1,0,0,0-.48.6l-2,6.71a.59.59,0,0,0,0,.14H3V16H29v8H28V18A1,1,0,0,0,27,17ZM12,14V9h1v5ZM9,14V9h1v5ZM6,14V9H7v5Zm9-5h1v5H15Zm2-2H5A1,1,0,0,0,4,8v6H3V6H29v8H18V8A1,1,0,0,0,17,7ZM29,4H3V3H29ZM3,27V26H29v1Z"/>
+  </g>
+</svg>
