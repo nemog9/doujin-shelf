@@ -30,6 +30,7 @@ echo "📱 検出: $DEVICE_NAME ($DEVICE_ID)"
 DERIVED_DATA=$(defaults read com.apple.dt.Xcode IDECustomDerivedDataLocation 2>/dev/null || echo "$HOME/Library/Developer/Xcode/DerivedData")
 
 APP_PATH=$(find "$DERIVED_DATA" -path "*/doujin-shelf-*/${BUILD_TYPE}-iphoneos/${APP_NAME}.app" -maxdepth 8 2>/dev/null \
+  | grep -v "ArchiveIntermediates" \
   | xargs -I{} stat -f "%m %N" {} 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
 
 if [ -z "$APP_PATH" ]; then
