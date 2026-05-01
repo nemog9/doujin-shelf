@@ -48,6 +48,20 @@ class AppBridgeInterface(private val activity: MainActivity) {
     }
   }
 
+  /** Content URI へ CSV テキストを書き込む（SAF 経由） */
+  @JavascriptInterface
+  fun writeCsvToUri(uriString: String, csvContent: String): String {
+    return try {
+      val uri = Uri.parse(uriString)
+      val outputStream = activity.contentResolver.openOutputStream(uri, "wt")
+        ?: return "error: openOutputStream returned null"
+      outputStream.use { it.write(csvContent.toByteArray(Charsets.UTF_8)) }
+      "ok"
+    } catch (e: Exception) {
+      "error: ${e.message}"
+    }
+  }
+
   /** DMMライブラリスクレイパーダイアログを開く */
   @JavascriptInterface
   fun startDmmScraper(existingTitlesJson: String?, keepAwake: Boolean, fullScanMode: Boolean) {

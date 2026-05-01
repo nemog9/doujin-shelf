@@ -157,8 +157,16 @@ export default function App() {
       });
       if (!targetPath) return;
 
-      await writeTextFile(targetPath, csv);
-      const savedName = targetPath.split(/[\\/]/).pop() ?? filename;
+      // Android では saveDialog が content:// URI を返すため ContentResolver 経由で書き込む
+      if (targetPath.startsWith("content://") && "AppBridge" in window) {
+        const result = (window as unknown as { AppBridge: { writeCsvToUri(uri: string, content: string): string } }).AppBridge.writeCsvToUri(targetPath, csv);
+        if (result !== "ok") throw new Error(result);
+      } else {
+        await writeTextFile(targetPath, csv);
+      }
+      const savedName = targetPath.startsWith("content://")
+        ? filename
+        : (targetPath.split(/[\\/]/).pop() ?? filename);
       setExportMessage(`${savedName} を保存しました`);
     } catch (error) {
       console.error("Export failed:", error);
