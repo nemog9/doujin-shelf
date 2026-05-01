@@ -3,6 +3,8 @@ declare global {
   interface Window {
     AppBridge?: {
       openUrl: (url: string) => void;
+      saveCsvWithPicker?: (csvContent: string, suggestedName: string) => void;
+      openCsvWithPicker?: () => void;
       startDmmScraper?: (existingTitlesJson?: string, keepAwake?: boolean, fullScanMode?: boolean) => void;
     };
   }

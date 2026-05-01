@@ -85,18 +85,31 @@ export default function App() {
 
   const handleImport = useCallback(async () => {
     try {
-      const selected = await openDialog({
-        multiple: false,
-        directory: false,
-        filters: [{ name: "CSV", extensions: ["csv", "txt"] }],
-      });
-      if (!selected || typeof selected !== "string") return;
+      if (window.AppBridge?.openCsvWithPicker) {
+        // Android: SAF 経由で content:// URI を直接読み取る（Google Drive 対応）
+        await new Promise<void>((resolve) => {
+          (window as any).__onCsvOpened = (content: string | null) => {
+            delete (window as any).__onCsvOpened;
+            if (!content || content.startsWith("error:")) return resolve();
+            const { works: parsed, errors } = parseCSV(content);
+            addWorks(parsed, "import.csv", errors);
+            resolve();
+          };
+          window.AppBridge!.openCsvWithPicker!();
+        });
+      } else {
+        const selected = await openDialog({
+          multiple: false,
+          directory: false,
+          filters: [{ name: "CSV", extensions: ["csv", "txt"] }],
+        });
+        if (!selected || typeof selected !== "string") return;
 
-      const content = await readTextFile(selected);
-      const filename = selected.split(/[\\/]/).pop() ?? selected;
-      const { works: parsed, errors } = parseCSV(content);
-
-      addWorks(parsed, filename, errors);
+        const content = await readTextFile(selected);
+        const filename = selected.split(/[\\/]/).pop() ?? selected;
+        const { works: parsed, errors } = parseCSV(content);
+        addWorks(parsed, filename, errors);
+      }
     } catch (err) {
       console.error("Import failed:", err);
     }

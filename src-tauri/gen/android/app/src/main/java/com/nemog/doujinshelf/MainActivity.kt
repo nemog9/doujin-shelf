@@ -22,12 +22,16 @@ class MainActivity : TauriActivity() {
   internal lateinit var mainWebView: WebView
   internal var pendingCsvContent: String? = null
   internal lateinit var csvSaveLauncher: ActivityResultLauncher<String>
+  internal lateinit var csvOpenLauncher: ActivityResultLauncher<Array<String>>
 
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
     csvSaveLauncher = registerForActivityResult(
       ActivityResultContracts.CreateDocument("text/csv")
     ) { uri -> handleCsvSaveResult(uri) }
+    csvOpenLauncher = registerForActivityResult(
+      ActivityResultContracts.OpenDocument()
+    ) { uri -> handleCsvOpenResult(uri) }
     super.onCreate(savedInstanceState)
   }
 
@@ -53,6 +57,29 @@ class MainActivity : TauriActivity() {
       val msg = JSONObject.quote("error: ${e.message}")
       runOnUiThread {
         webView.evaluateJavascript("window.__onCsvSaved && window.__onCsvSaved($msg);", null)
+      }
+    }
+  }
+
+  private fun handleCsvOpenResult(uri: Uri?) {
+    val webView = mainWebView
+    if (uri == null) {
+      runOnUiThread {
+        webView.evaluateJavascript("window.__onCsvOpened && window.__onCsvOpened(null);", null)
+      }
+      return
+    }
+    try {
+      val content = contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.readText()
+        ?: throw Exception("openInputStream returned null")
+      val escaped = JSONObject.quote(content)
+      runOnUiThread {
+        webView.evaluateJavascript("window.__onCsvOpened && window.__onCsvOpened($escaped);", null)
+      }
+    } catch (e: Exception) {
+      val msg = JSONObject.quote("error: ${e.message}")
+      runOnUiThread {
+        webView.evaluateJavascript("window.__onCsvOpened && window.__onCsvOpened($msg);", null)
       }
     }
   }
@@ -88,6 +115,14 @@ class AppBridgeInterface(private val activity: MainActivity) {
     activity.pendingCsvContent = csvContent
     activity.runOnUiThread {
       activity.csvSaveLauncher.launch(suggestedName)
+    }
+  }
+
+  /** SAF ピッカーで CSV を開いて読み込む。結果は window.__onCsvOpened(content) で通知 */
+  @JavascriptInterface
+  fun openCsvWithPicker() {
+    activity.runOnUiThread {
+      activity.csvOpenLauncher.launch(arrayOf("text/csv", "text/plain", "*/*"))
     }
   }
 
