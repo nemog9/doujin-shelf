@@ -11,16 +11,50 @@ import android.view.*
 import android.webkit.*
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
+import org.json.JSONObject
 
 // ─── MainActivity ──────────────────────────────────────────────────────────────
 
 class MainActivity : TauriActivity() {
   internal lateinit var mainWebView: WebView
+  internal var pendingCsvContent: String? = null
+  internal lateinit var csvSaveLauncher: ActivityResultLauncher<String>
 
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
+    csvSaveLauncher = registerForActivityResult(
+      ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri -> handleCsvSaveResult(uri) }
     super.onCreate(savedInstanceState)
+  }
+
+  private fun handleCsvSaveResult(uri: Uri?) {
+    val webView = mainWebView
+    if (uri == null) {
+      runOnUiThread {
+        webView.evaluateJavascript("window.__onCsvSaved && window.__onCsvSaved(null);", null)
+      }
+      return
+    }
+    val content = pendingCsvContent ?: return
+    pendingCsvContent = null
+    try {
+      contentResolver.openOutputStream(uri, "wt")?.use { stream ->
+        stream.write(content.toByteArray(Charsets.UTF_8))
+        stream.flush()
+      } ?: throw Exception("openOutputStream returned null")
+      runOnUiThread {
+        webView.evaluateJavascript("window.__onCsvSaved && window.__onCsvSaved('ok');", null)
+      }
+    } catch (e: Exception) {
+      val msg = JSONObject.quote("error: ${e.message}")
+      runOnUiThread {
+        webView.evaluateJavascript("window.__onCsvSaved && window.__onCsvSaved($msg);", null)
+      }
+    }
   }
 
   @SuppressLint("JavascriptInterface")
@@ -48,17 +82,12 @@ class AppBridgeInterface(private val activity: MainActivity) {
     }
   }
 
-  /** Content URI へ CSV テキストを書き込む（SAF 経由） */
+  /** SAF ピッカーを開き CSV を書き込む。結果は window.__onCsvSaved(result) で通知 */
   @JavascriptInterface
-  fun writeCsvToUri(uriString: String, csvContent: String): String {
-    return try {
-      val uri = Uri.parse(uriString)
-      val outputStream = activity.contentResolver.openOutputStream(uri, "wt")
-        ?: return "error: openOutputStream returned null"
-      outputStream.use { it.write(csvContent.toByteArray(Charsets.UTF_8)) }
-      "ok"
-    } catch (e: Exception) {
-      "error: ${e.message}"
+  fun saveCsvWithPicker(csvContent: String, suggestedName: String) {
+    activity.pendingCsvContent = csvContent
+    activity.runOnUiThread {
+      activity.csvSaveLauncher.launch(suggestedName)
     }
   }
 

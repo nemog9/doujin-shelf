@@ -151,22 +151,29 @@ export default function App() {
       );
       const csv = `\uFEFF${[header, ...lines].join("\n")}`;
 
+      // Android: AppBridge が SAF ピッカーを開いてその場で書き込む
+      if ("AppBridge" in window) {
+        const saved = await new Promise<boolean>((resolve, reject) => {
+          (window as any).__onCsvSaved = (result: string | null) => {
+            delete (window as any).__onCsvSaved;
+            if (result === null) return resolve(false); // user cancelled
+            if (result === "ok") return resolve(true);
+            reject(new Error(result));
+          };
+          (window as any).AppBridge.saveCsvWithPicker(csv, filename);
+        });
+        if (saved) setExportMessage(`${filename} を保存しました`);
+        return;
+      }
+
+      // Desktop: saveDialog + writeTextFile
       const targetPath = await saveDialog({
         defaultPath: filename,
         filters: [{ name: "CSV", extensions: ["csv"] }],
       });
       if (!targetPath) return;
-
-      // Android では saveDialog が content:// URI を返すため ContentResolver 経由で書き込む
-      if (targetPath.startsWith("content://") && "AppBridge" in window) {
-        const result = (window as unknown as { AppBridge: { writeCsvToUri(uri: string, content: string): string } }).AppBridge.writeCsvToUri(targetPath, csv);
-        if (result !== "ok") throw new Error(result);
-      } else {
-        await writeTextFile(targetPath, csv);
-      }
-      const savedName = targetPath.startsWith("content://")
-        ? filename
-        : (targetPath.split(/[\\/]/).pop() ?? filename);
+      await writeTextFile(targetPath, csv);
+      const savedName = targetPath.split(/[\\/]/).pop() ?? filename;
       setExportMessage(`${savedName} を保存しました`);
     } catch (error) {
       console.error("Export failed:", error);
