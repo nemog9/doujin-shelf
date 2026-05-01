@@ -319,7 +319,7 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3 pb-24">
+            <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3 ${(searchQuery || selectedGenre) ? "pb-36" : "pb-28"}`}>
               {displayedWorks.map((work) => (
                 <WorkCard key={work.id} work={work} />
               ))}
