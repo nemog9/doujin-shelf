@@ -103,13 +103,22 @@ jobs:
 
             | OS | ファイル |
             |---|---|
-            | Android | `app-universal-release.apk` |
+            | Android | `app-universal-debug.apk` |
             | macOS (Apple Silicon) | `DoujinShelf_*_aarch64.dmg` |
             | Windows | `DoujinShelf_*_x64-setup.exe` |
 
-            > **注意**: デスクトップ版はコード署名なしのビルドです。
-            > - macOS: 「開発元が未確認」の警告が出た場合、右クリック→「開く」で実行できます
-            > - Windows: SmartScreen 警告が出た場合、「詳細情報」→「実行」で実行できます
+            ## macOS インストール方法
+
+            コード署名なしのビルドのため、初回起動時に「壊れているため開けません」と表示されます。
+            ターミナルで以下のコマンドを実行してから起動してください：
+
+            ```bash
+            xattr -dr com.apple.quarantine /Applications/DoujinShelf.app
+            ```
+
+            ## Windows インストール方法
+
+            SmartScreen の警告が表示された場合は「詳細情報」→「実行」で起動できます。
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

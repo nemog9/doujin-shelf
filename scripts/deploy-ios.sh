@@ -2,7 +2,7 @@
 set -e
 
 # ---- 設定 ----
-APP_NAME="voice-csv-viewer"
+APP_NAME="doujin-shelf"
 BUILD_TYPE="${1:-release}"  # 引数なし = release、"debug" も可
 
 # ---- デバイス検出 ----

@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    voice_csv_viewer_lib::run()
+    doujin_shelf_lib::run()
 }
