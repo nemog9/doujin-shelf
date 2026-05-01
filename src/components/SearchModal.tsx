@@ -127,33 +127,6 @@ export function SearchModal({
           )}
         </div>
 
-        {/* 検索履歴 */}
-        {historyVisible && (
-          <div onMouseDown={(e) => e.preventDefault()}>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">最近の検索</span>
-              <button
-                onClick={clearSearchHistory}
-                className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
-              >
-                クリア
-              </button>
-            </div>
-            <div className="space-y-0.5">
-              {searchHistory.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => handleHistorySelect(item)}
-                  className="w-full text-left px-2.5 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-700/60 active:bg-slate-700 transition-colors flex items-center gap-2.5"
-                >
-                  <span className="text-slate-500 shrink-0">🕐</span>
-                  <span className="truncate">{item}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* カテゴリ絞り込み */}
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
           {GENRE_OPTIONS.map((opt) => (
@@ -194,8 +167,38 @@ export function SearchModal({
         </div>
       </div>
 
-      {/* 背景タップで閉じる */}
-      <div className="flex-1 bg-black/50 backdrop-blur-sm" />
+      {/* 背景タップで閉じる（履歴はこのエリアの先頭に表示） */}
+      <div className="flex-1 bg-black/50 backdrop-blur-sm">
+        {historyVisible && (
+          <div
+            className="mx-3 mt-2 bg-[#1a1a2e]/95 rounded-xl border border-white/10 shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">最近の検索</span>
+              <button
+                onClick={clearSearchHistory}
+                className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                クリア
+              </button>
+            </div>
+            <div className="pb-1">
+              {searchHistory.map((item) => (
+                <button
+                  key={item}
+                  onClick={() => handleHistorySelect(item)}
+                  className="w-full text-left px-3 py-2.5 text-sm text-slate-300 hover:bg-slate-700/60 active:bg-slate-700 transition-colors flex items-center gap-2.5"
+                >
+                  <span className="text-slate-500 shrink-0 text-base">🕐</span>
+                  <span className="truncate">{item}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
