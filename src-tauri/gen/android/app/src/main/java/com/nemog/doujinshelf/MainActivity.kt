@@ -1,4 +1,4 @@
-package com.example.voicecsvviewer
+package com.nemog.doujinshelf
 
 import android.annotation.SuppressLint
 import android.app.Activity
