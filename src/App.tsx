@@ -63,8 +63,6 @@ export default function App() {
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
-    setSearchQuery("");
-    setSelectedGenre("");
   };
 
   const filtered = useMemo(
