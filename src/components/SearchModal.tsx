@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SortField } from "../types";
 
 interface Props {
@@ -39,11 +39,17 @@ export function SearchModal({
   onClose,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState(query);
 
   useEffect(() => {
     const t = setTimeout(() => inputRef.current?.focus(), 80);
     return () => clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => onQueryChange(inputValue), 300);
+    return () => clearTimeout(t);
+  }, [inputValue, onQueryChange]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -75,15 +81,15 @@ export function SearchModal({
           <input
             ref={inputRef}
             type="search"
-            value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") onClose(); }}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { onQueryChange(inputValue); onClose(); } }}
             placeholder="タイトル・サークル・声優で検索..."
             className="w-full bg-slate-800 text-slate-100 placeholder-slate-500 rounded-xl pl-9 pr-10 py-3 outline-none focus:ring-2 focus:ring-violet-500"
           />
-          {query && (
+          {inputValue && (
             <button
-              onClick={() => onQueryChange("")}
+              onClick={() => { setInputValue(""); onQueryChange(""); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
             >
               ✕
