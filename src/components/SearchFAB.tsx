@@ -7,7 +7,7 @@ export function SearchFAB({ onClick, hasActiveQuery }: Props) {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-20 right-6 z-40 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform active:scale-90"
+      className="fixed bottom-20 right-4 z-40 w-16 h-16 rounded-full shadow-lg flex items-center justify-center transition-transform active:scale-90"
       style={{
         background: hasActiveQuery
           ? "linear-gradient(135deg, #7c3aed, #a855f7)"

@@ -23,6 +23,9 @@ interface AppState {
   setLinkOpenMode: (mode: LinkOpenMode) => void;
   setPreventSleepDuringImport: (enabled: boolean) => void;
   setFullScanMode: (enabled: boolean) => void;
+  searchHistory: string[];
+  addToSearchHistory: (query: string) => void;
+  clearSearchHistory: () => void;
   selectWork: (work: Work | null) => void;
   dismissImportResult: () => void;
   clearAll: () => void;
@@ -41,6 +44,7 @@ export const useAppStore = create<AppState>()(
       fullScanMode: false,
       lastImportResult: null,
       selectedWork: null,
+      searchHistory: [],
 
       addWorks: (incoming, filename, errors = 0) => {
         const existing = get().works;
@@ -78,6 +82,13 @@ export const useAppStore = create<AppState>()(
       setLinkOpenMode: (linkOpenMode) => set({ linkOpenMode }),
       setPreventSleepDuringImport: (preventSleepDuringImport) => set({ preventSleepDuringImport }),
       setFullScanMode: (fullScanMode) => set({ fullScanMode }),
+      addToSearchHistory: (query) => {
+        const trimmed = query.trim();
+        if (!trimmed) return;
+        const current = get().searchHistory.filter((h) => h !== trimmed);
+        set({ searchHistory: [trimmed, ...current].slice(0, 8) });
+      },
+      clearSearchHistory: () => set({ searchHistory: [] }),
       selectWork: (selectedWork) => set({ selectedWork }),
       dismissImportResult: () => set({ lastImportResult: null }),
       clearAll: () => set({ works: [], favorites: [], selectedWork: null, lastImportResult: null }),
@@ -90,6 +101,7 @@ export const useAppStore = create<AppState>()(
         linkOpenMode: state.linkOpenMode,
         preventSleepDuringImport: state.preventSleepDuringImport,
         fullScanMode: state.fullScanMode,
+        searchHistory: state.searchHistory,
       }),
     }
   )

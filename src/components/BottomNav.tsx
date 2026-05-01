@@ -9,7 +9,7 @@ interface Props {
 }
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "list",      label: "一覧",      icon: "▤" },
+  { id: "list",      label: "一覧",      icon: "📚" },
   { id: "favorites", label: "お気に入り", icon: "" },   // SVGで描画
   { id: "random",    label: "ランダム",   icon: "🎲" },
   { id: "settings",  label: "設定",      icon: "⚙" },

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { SortField } from "../types";
+import { useAppStore } from "../store";
 
 interface Props {
   query: string;
@@ -40,9 +41,17 @@ export function SearchModal({
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState(query);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const searchHistory = useAppStore((s) => s.searchHistory);
+  const addToSearchHistory = useAppStore((s) => s.addToSearchHistory);
+  const clearSearchHistory = useAppStore((s) => s.clearSearchHistory);
 
   useEffect(() => {
-    const t = setTimeout(() => inputRef.current?.focus(), 80);
+    const t = setTimeout(() => {
+      inputRef.current?.focus();
+      setShowHistory(true);
+    }, 80);
     return () => clearTimeout(t);
   }, []);
 
@@ -53,18 +62,30 @@ export function SearchModal({
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  }, [inputValue]);
+
+  const handleClose = () => {
+    if (inputValue.trim()) addToSearchHistory(inputValue.trim());
+    onClose();
+  };
+
+  const handleHistorySelect = (item: string) => {
+    onQueryChange(item);
+    addToSearchHistory(item);
+    onClose();
+  };
 
   const isFiltered = query || selectedGenre;
+  const historyVisible = showHistory && searchHistory.length > 0;
 
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-stretch"
-      onClick={onClose}
+      onClick={handleClose}
       style={{ touchAction: "none" }}
     >
       {/* パネル — 画面上部に固定 */}
@@ -83,13 +104,21 @@ export function SearchModal({
             type="search"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { onQueryChange(inputValue); onClose(); } }}
+            onFocus={() => setShowHistory(true)}
+            onBlur={() => setShowHistory(false)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onQueryChange(inputValue);
+                if (inputValue.trim()) addToSearchHistory(inputValue.trim());
+                onClose();
+              }
+            }}
             placeholder="タイトル・サークル・声優で検索..."
             className="w-full bg-slate-800 text-slate-100 placeholder-slate-500 rounded-xl pl-9 pr-10 py-3 outline-none focus:ring-2 focus:ring-violet-500"
           />
           {inputValue && (
             <button
-              onClick={() => { setInputValue(""); onQueryChange(""); }}
+              onClick={() => { setInputValue(""); onQueryChange(""); inputRef.current?.focus(); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
             >
               ✕
@@ -137,8 +166,38 @@ export function SearchModal({
         </div>
       </div>
 
-      {/* 背景タップで閉じる */}
-      <div className="flex-1 bg-black/50 backdrop-blur-sm" />
+      {/* 背景タップで閉じる（履歴はこのエリアの先頭に表示） */}
+      <div className="flex-1 bg-black/50 backdrop-blur-sm">
+        {historyVisible && (
+          <div
+            className="mx-3 mt-2 bg-[#1a1a2e]/95 rounded-xl border border-white/10 shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">最近の検索</span>
+              <button
+                onClick={clearSearchHistory}
+                className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                クリア
+              </button>
+            </div>
+            <div className="pb-1">
+              {searchHistory.map((item) => (
+                <button
+                  key={item}
+                  onClick={() => handleHistorySelect(item)}
+                  className="w-full text-left px-3 py-2.5 text-sm text-slate-300 hover:bg-slate-700/60 active:bg-slate-700 transition-colors flex items-center gap-2.5"
+                >
+                  <span className="text-slate-500 shrink-0 text-base">🕐</span>
+                  <span className="truncate">{item}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
