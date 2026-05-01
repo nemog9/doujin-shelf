@@ -1,12 +1,10 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Work } from "../types";
 import { HeartIcon } from "./HeartIcon";
+import { useAppStore } from "../store";
 
 interface Props {
   work: Work;
-  onClick: () => void;
-  isFavorite: boolean;
-  onToggleFavorite: () => void;
 }
 
 const SOURCE_LABEL: Record<Work["source"], string> = {
@@ -15,13 +13,16 @@ const SOURCE_LABEL: Record<Work["source"], string> = {
   other: "",
 };
 
-export function WorkCard({ work, onClick, isFavorite, onToggleFavorite }: Props) {
+export const WorkCard = memo(function WorkCard({ work }: Props) {
   const [imgError, setImgError] = useState(false);
+  const isFavorite = useAppStore((s) => s.favorites.includes(work.id));
+  const selectWork = useAppStore((s) => s.selectWork);
+  const toggleFavorite = useAppStore((s) => s.toggleFavorite);
   const badge = SOURCE_LABEL[work.source];
 
   return (
     <button
-      onClick={onClick}
+      onClick={() => selectWork(work)}
       className="relative flex flex-col bg-slate-800/60 rounded-xl overflow-hidden border border-white/5 active:scale-95 transition-transform duration-150 text-left"
       style={{ transform: "translateZ(0)" }}
     >
@@ -34,6 +35,7 @@ export function WorkCard({ work, onClick, isFavorite, onToggleFavorite }: Props)
             className="w-full h-full object-cover"
             onError={() => setImgError(true)}
             decoding="async"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-4xl text-slate-600">
@@ -42,7 +44,7 @@ export function WorkCard({ work, onClick, isFavorite, onToggleFavorite }: Props)
         )}
         {/* Favorite button */}
         <button
-          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+          onClick={(e) => { e.stopPropagation(); toggleFavorite(work.id); }}
           className={`absolute bottom-1.5 right-1.5 w-7 h-7 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm transition-colors ${
             isFavorite ? "text-pink-400" : "text-slate-400/80"
           }`}
@@ -68,4 +70,4 @@ export function WorkCard({ work, onClick, isFavorite, onToggleFavorite }: Props)
       </div>
     </button>
   );
-}
+});
