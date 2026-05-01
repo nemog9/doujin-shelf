@@ -40,3 +40,6 @@ src-tauri/gen/apple/**/xcuserdata/
 # ログ
 *.log
 npm-debug.log*
+
+# Claude Code
+.claude/worktrees/
