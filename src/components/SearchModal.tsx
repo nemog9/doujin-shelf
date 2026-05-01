@@ -81,7 +81,7 @@ export function SearchModal({
   };
 
   const isFiltered = query || selectedGenre;
-  const historyVisible = showHistory && !inputValue && searchHistory.length > 0;
+  const historyVisible = showHistory && searchHistory.length > 0;
 
   return (
     <div
@@ -104,8 +104,8 @@ export function SearchModal({
             ref={inputRef}
             type="search"
             value={inputValue}
-            onChange={(e) => { setInputValue(e.target.value); setShowHistory(false); }}
-            onFocus={() => { if (!inputValue) setShowHistory(true); }}
+            onChange={(e) => setInputValue(e.target.value)}
+            onFocus={() => setShowHistory(true)}
             onBlur={() => setShowHistory(false)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -119,7 +119,7 @@ export function SearchModal({
           />
           {inputValue && (
             <button
-              onClick={() => { setInputValue(""); onQueryChange(""); setShowHistory(true); inputRef.current?.focus(); }}
+              onClick={() => { setInputValue(""); onQueryChange(""); inputRef.current?.focus(); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
             >
               ✕
