@@ -19,6 +19,9 @@ src-tauri/gen/android/.gradle/
 src-tauri/gen/android/buildSrc/.gradle/
 src-tauri/gen/android/buildSrc/build/
 
+# IDE 設定（自動生成）
+src-tauri/gen/android/.idea/
+
 # ローカル環境依存（SDK パスなど）
 src-tauri/gen/android/local.properties
 
