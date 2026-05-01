@@ -29,7 +29,8 @@ echo "📱 検出: $DEVICE_NAME ($DEVICE_ID)"
 # ---- .app パス解決 ----
 DERIVED_DATA=$(defaults read com.apple.dt.Xcode IDECustomDerivedDataLocation 2>/dev/null || echo "$HOME/Library/Developer/Xcode/DerivedData")
 
-APP_PATH=$(find "$DERIVED_DATA" -path "*/${BUILD_TYPE}-iphoneos/${APP_NAME}.app" -maxdepth 8 2>/dev/null | sort -r | head -1)
+APP_PATH=$(find "$DERIVED_DATA" -path "*/doujin-shelf-*/${BUILD_TYPE}-iphoneos/${APP_NAME}.app" -maxdepth 8 2>/dev/null \
+  | xargs -I{} stat -f "%m %N" {} 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
 
 if [ -z "$APP_PATH" ]; then
   echo "❌ ${BUILD_TYPE} ビルドの .app が見つかりません。先に 'pnpm build:ios' を実行してください。"
