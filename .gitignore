@@ -32,6 +32,8 @@ src-tauri/gen/android/local.properties
 # ── iOS ──────────────────────────────────────────────
 # ビルド成果物
 src-tauri/gen/apple/build/
+# コンパイル済み Rust 静的ライブラリ（tauri ios build で都度生成）
+src-tauri/gen/apple/Externals/
 
 # CocoaPods
 src-tauri/gen/apple/Pods/
