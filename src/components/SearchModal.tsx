@@ -74,10 +74,9 @@ export function SearchModal({
   };
 
   const handleHistorySelect = (item: string) => {
-    setInputValue(item);
     onQueryChange(item);
-    setShowHistory(false);
     addToSearchHistory(item);
+    onClose();
   };
 
   const isFiltered = query || selectedGenre;
