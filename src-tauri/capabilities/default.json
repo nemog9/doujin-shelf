@@ -1,6 +1,6 @@
 {
   "identifier": "default",
-  "description": "Default capabilities for voice-csv-viewer",
+  "description": "Default capabilities for doujin-shelf",
   "windows": ["main"],
   "permissions": [
     "core:default",

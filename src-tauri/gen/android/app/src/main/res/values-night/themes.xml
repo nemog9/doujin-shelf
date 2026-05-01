@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.voice_csv_viewer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.doujin_shelf" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
     </style>
 </resources>

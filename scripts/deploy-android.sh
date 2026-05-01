@@ -32,6 +32,6 @@ echo "インストール中..."
 "$ADB" -s "$DEVICE_ID" install -r "$APK"
 
 echo "起動中..."
-"$ADB" -s "$DEVICE_ID" shell am start -n "com.example.voicecsvviewer/.MainActivity"
+"$ADB" -s "$DEVICE_ID" shell am start -n "com.nemog.doujinshelf/.MainActivity"
 
 echo "完了"
