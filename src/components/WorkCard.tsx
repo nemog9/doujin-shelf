@@ -45,11 +45,11 @@ export const WorkCard = memo(function WorkCard({ work }: Props) {
         {/* Favorite button */}
         <button
           onClick={(e) => { e.stopPropagation(); toggleFavorite(work.id); }}
-          className={`absolute bottom-1.5 right-1.5 w-7 h-7 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm transition-colors ${
+          className={`absolute bottom-1.5 right-1.5 w-9 h-9 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-sm transition-colors ${
             isFavorite ? "text-pink-400" : "text-slate-400/80"
           }`}
         >
-          <HeartIcon filled={isFavorite} size={15} />
+          <HeartIcon filled={isFavorite} size={18} />
         </button>
       </div>
 

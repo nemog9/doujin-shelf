@@ -101,7 +101,7 @@ export function SearchModal({
           </span>
           <input
             ref={inputRef}
-            type="search"
+            type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onFocus={() => setShowHistory(true)}

@@ -3,6 +3,7 @@ import { Work } from "../types";
 import { isTauri } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useAppStore } from "../store";
+import { HeartIcon } from "./HeartIcon";
 
 
 interface Props {
@@ -34,7 +35,9 @@ function getOpenUrl(work: Work): string {
 
 export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
   const [imgError, setImgError] = useState(false);
-  const linkOpenMode = useAppStore((state) => state.linkOpenMode);
+  const linkOpenMode = useAppStore((s) => s.linkOpenMode);
+  const isFavorite = useAppStore((s) => s.favorites.includes(work.id));
+  const toggleFavorite = useAppStore((s) => s.toggleFavorite);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -81,16 +84,31 @@ export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
           <div className="w-10 h-1 bg-slate-600 rounded-full" />
         </div>
 
-        <div className="flex items-center justify-between px-4 pt-2">
+        <div className="flex items-center justify-between px-4 pt-2 pb-1">
           <button
             onClick={onDelete}
-            className="text-[11px] text-rose-400 hover:text-rose-300 px-1.5 py-1"
+            className="text-xs text-rose-400 hover:text-rose-300 active:opacity-70 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-rose-900/20"
           >
             削除
           </button>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-200 text-sm p-1">
-            ✕ 閉じる
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => toggleFavorite(work.id)}
+              className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors ${
+                isFavorite
+                  ? "bg-pink-500/20 text-pink-400"
+                  : "bg-slate-700/60 text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <HeartIcon filled={isFavorite} size={18} />
+            </button>
+            <button
+              onClick={onClose}
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-700/60 text-slate-400 hover:text-slate-200 hover:bg-slate-700 active:opacity-70 transition-colors text-sm"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="overflow-y-auto scrollbar-hide px-4 pb-6 space-y-4">
