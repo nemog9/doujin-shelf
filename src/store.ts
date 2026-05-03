@@ -118,7 +118,8 @@ export function getFilteredWorks(
   let filtered = works;
 
   if (genre) {
-    filtered = filtered.filter((w) => w.genre === genre);
+    // genre データのない作品（CSV インポート等）はどのカテゴリにも表示する
+    filtered = filtered.filter((w) => !w.genre || w.genre === genre);
   }
 
   if (q) {

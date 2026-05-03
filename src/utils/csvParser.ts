@@ -75,6 +75,11 @@ const COLUMN_MAP: Record<string, string> = {
   声優: "actors",
   キャスト: "actors",
 
+  genre: "genre",
+  category: "genre",
+  ジャンル: "genre",
+  カテゴリ: "genre",
+
   thumbnail_url: "thumbnailUrl",
   thumbnail: "thumbnailUrl",
   image_url: "thumbnailUrl",
