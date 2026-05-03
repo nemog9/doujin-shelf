@@ -167,6 +167,7 @@ export function parseCSV(csvContent: string): ParseCSVResult {
         actors: (partial.actors as string[] | undefined) ?? [],
         thumbnailUrl: (partial.thumbnailUrl as string | undefined) ?? "",
         productUrl: (partial.productUrl as string | undefined) ?? "",
+        genre: (partial.genre as string | undefined) ?? "",
       },
       now
     );
