@@ -4,6 +4,7 @@ import { isTauri } from "@tauri-apps/api/core";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useAppStore } from "../store";
 import { HeartIcon } from "./HeartIcon";
+import { EditWorkModal } from "./EditWorkModal";
 
 
 interface Props {
@@ -35,6 +36,7 @@ function getOpenUrl(work: Work): string {
 
 export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
   const [imgError, setImgError] = useState(false);
+  const [editing, setEditing] = useState(false);
   const linkOpenMode = useAppStore((s) => s.linkOpenMode);
   const isFavorite = useAppStore((s) => s.favorites.includes(work.id));
   const toggleFavorite = useAppStore((s) => s.toggleFavorite);
@@ -70,6 +72,8 @@ export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
   }
 
   return (
+    <>
+    {editing && <EditWorkModal work={work} onClose={() => setEditing(false)} />}
     <div
       className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}
@@ -92,6 +96,12 @@ export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
             削除
           </button>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setEditing(true)}
+              className="text-xs text-slate-400 hover:text-slate-200 active:opacity-70 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-slate-700/60"
+            >
+              編集
+            </button>
             <button
               onClick={() => toggleFavorite(work.id)}
               className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors ${
@@ -183,5 +193,6 @@ export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
         </div>
       </div>
     </div>
+    </>
   );
 }

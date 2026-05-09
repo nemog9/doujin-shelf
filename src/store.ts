@@ -15,6 +15,7 @@ interface AppState {
   selectedWork: Work | null;
 
   addWorks: (incoming: Work[], filename: string, errors?: number) => ImportResult;
+  updateWork: (id: string, updates: Partial<Pick<Work, "title" | "circle" | "actors" | "genre">>) => void;
   removeWork: (id: string) => void;
   toggleFavorite: (id: string) => void;
   setSearchQuery: (q: string) => void;
@@ -62,6 +63,12 @@ export const useAppStore = create<AppState>()(
 
         set({ works: [...existing, ...added], lastImportResult: result });
         return result;
+      },
+
+      updateWork: (id, updates) => {
+        const works = get().works.map((w) => (w.id === id ? { ...w, ...updates } : w));
+        const selectedWork = get().selectedWork?.id === id ? { ...get().selectedWork!, ...updates } : get().selectedWork;
+        set({ works, selectedWork });
       },
 
       removeWork: (id) => {
