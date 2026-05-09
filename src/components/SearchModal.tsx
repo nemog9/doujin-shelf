@@ -50,6 +50,7 @@ export function SearchModal({
   useEffect(() => {
     const t = setTimeout(() => {
       inputRef.current?.focus();
+      inputRef.current?.select();
       setShowHistory(true);
     }, 80);
     return () => clearTimeout(t);
