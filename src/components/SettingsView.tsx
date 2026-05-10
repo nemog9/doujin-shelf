@@ -10,6 +10,8 @@ interface Props {
   canExport: boolean;
   onExport: () => void;
   onDeleteAll: () => void;
+  hiddenCount: number;
+  onShowHidden: () => void;
 }
 
 const OPTIONS: { id: LinkOpenMode; title: string; description: string }[] = [
@@ -35,6 +37,8 @@ export function SettingsView({
   canExport,
   onExport,
   onDeleteAll,
+  hiddenCount,
+  onShowHidden,
 }: Props) {
   return (
     <main className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-24 space-y-4">
@@ -161,6 +165,24 @@ export function SettingsView({
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-slate-100">データ管理</h2>
+        <button
+          onClick={onShowHidden}
+          className="w-full rounded-2xl border border-white/10 bg-slate-900/50 px-4 py-4 text-left transition-colors hover:border-slate-600"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-100">非表示にした作品</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-400">
+                非表示にした作品の一覧を表示・管理します。
+              </p>
+            </div>
+            {hiddenCount > 0 && (
+              <span className="shrink-0 text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">
+                {hiddenCount}件
+              </span>
+            )}
+          </div>
+        </button>
         <button
           onClick={onDeleteAll}
           className="w-full rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-4 text-left transition-colors hover:bg-red-500/20 active:bg-red-500/30"

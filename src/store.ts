@@ -16,7 +16,8 @@ interface AppState {
 
   addWorks: (incoming: Work[], filename: string, errors?: number) => ImportResult;
   updateWork: (id: string, updates: Partial<Pick<Work, "title" | "circle" | "actors" | "genre">>) => void;
-  removeWork: (id: string) => void;
+  hideWork: (id: string) => void;
+  unhideWork: (id: string) => void;
   toggleFavorite: (id: string) => void;
   setSearchQuery: (q: string) => void;
   setSelectedGenre: (genre: string) => void;
@@ -71,11 +72,15 @@ export const useAppStore = create<AppState>()(
         set({ works, selectedWork });
       },
 
-      removeWork: (id) => {
-        const works = get().works.filter((work) => work.id !== id);
-        const favorites = get().favorites.filter((favoriteId) => favoriteId !== id);
+      hideWork: (id) => {
+        const works = get().works.map((w) => w.id === id ? { ...w, hidden: true } : w);
         const selectedWork = get().selectedWork?.id === id ? null : get().selectedWork;
-        set({ works, favorites, selectedWork });
+        set({ works, selectedWork });
+      },
+
+      unhideWork: (id) => {
+        const works = get().works.map((w) => w.id === id ? { ...w, hidden: false } : w);
+        set({ works });
       },
 
       toggleFavorite: (id) => {
@@ -122,7 +127,7 @@ export function getFilteredWorks(
   genre = ""
 ): Work[] {
   const q = query.trim().toLowerCase();
-  let filtered = works;
+  let filtered = works.filter((w) => !w.hidden);
 
   if (genre) {
     // genre データのない作品（CSV インポート等）はどのカテゴリにも表示する

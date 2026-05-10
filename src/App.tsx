@@ -13,6 +13,7 @@ import { SearchModal } from "./components/SearchModal";
 import { BottomNav, Tab } from "./components/BottomNav";
 import { RandomView } from "./components/RandomView";
 import { SettingsView } from "./components/SettingsView";
+import { HiddenWorksView } from "./components/HiddenWorksView";
 import { Work } from "./types";
 import { SortField } from "./types";
 
@@ -44,7 +45,8 @@ export default function App() {
     lastImportResult,
     selectedWork,
     addWorks,
-    removeWork,
+    hideWork,
+    unhideWork,
     setSearchQuery,
     setSelectedGenre,
     setSortBy,
@@ -62,9 +64,11 @@ export default function App() {
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [favQuery, setFavQuery] = useState("");
   const [favGenre, setFavGenre] = useState("");
+  const [showHiddenWorks, setShowHiddenWorks] = useState(false);
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
+    if (tab !== "settings") setShowHiddenWorks(false);
   };
 
   // タブごとに独立した検索状態
@@ -81,6 +85,11 @@ export default function App() {
   const favoriteWorks = useMemo(
     () => getFilteredWorks(works.filter((w) => favorites.includes(w.id)), favQuery, sortBy, favGenre),
     [works, favorites, favQuery, sortBy, favGenre]
+  );
+
+  const hiddenWorks = useMemo(
+    () => works.filter((w) => w.hidden),
+    [works]
   );
 
   const handleImport = useCallback(async () => {
@@ -115,17 +124,9 @@ export default function App() {
     }
   }, [addWorks]);
 
-  const handleDeleteWork = useCallback(async (work: Work) => {
-    const confirmed = await confirm(`「${work.title}」を削除しますか？`, {
-      title: "作品を削除",
-      kind: "warning",
-      okLabel: "削除する",
-      cancelLabel: "キャンセル",
-    });
-    if (!confirmed) return;
-
-    removeWork(work.id);
-  }, [removeWork]);
+  const handleHideWork = useCallback((work: Work) => {
+    hideWork(work.id);
+  }, [hideWork]);
 
   const handleDmmScraped = useCallback((items: DmmScrapedItem[]) => {
     const now = new Date().toISOString();
@@ -299,17 +300,27 @@ export default function App() {
       {activeTab === "random" ? (
         <RandomView works={works} onSelect={selectWork} />
       ) : activeTab === "settings" ? (
-        <SettingsView
-          linkOpenMode={linkOpenMode}
-          onChangeLinkOpenMode={setLinkOpenMode}
-          preventSleepDuringImport={preventSleepDuringImport}
-          onChangePreventSleepDuringImport={setPreventSleepDuringImport}
-          fullScanMode={fullScanMode}
-          onChangeFullScanMode={setFullScanMode}
-          canExport={canExport}
-          onExport={handleExport}
-          onDeleteAll={handleDeleteAll}
-        />
+        showHiddenWorks ? (
+          <HiddenWorksView
+            works={hiddenWorks}
+            onUnhide={unhideWork}
+            onBack={() => setShowHiddenWorks(false)}
+          />
+        ) : (
+          <SettingsView
+            linkOpenMode={linkOpenMode}
+            onChangeLinkOpenMode={setLinkOpenMode}
+            preventSleepDuringImport={preventSleepDuringImport}
+            onChangePreventSleepDuringImport={setPreventSleepDuringImport}
+            fullScanMode={fullScanMode}
+            onChangeFullScanMode={setFullScanMode}
+            canExport={canExport}
+            onExport={handleExport}
+            onDeleteAll={handleDeleteAll}
+            hiddenCount={hiddenWorks.length}
+            onShowHidden={() => setShowHiddenWorks(true)}
+          />
+        )
       ) : (
         <main
           className={`flex-1 scrollbar-hide ${searchOpen || !!selectedWork ? "overflow-hidden" : "overflow-y-auto"}`}
@@ -383,9 +394,7 @@ export default function App() {
           work={selectedWork}
           onClose={() => selectWork(null)}
           onFilterBy={(q) => { setSearchQuery(q); selectWork(null); setActiveTab("list"); }}
-          onDelete={async () => {
-            await handleDeleteWork(selectedWork);
-          }}
+          onHide={() => handleHideWork(selectedWork)}
         />
       )}
     </div>
