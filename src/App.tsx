@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { confirm, open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
@@ -323,6 +323,8 @@ export default function App() {
   }, []);
 
   const displayedWorks = activeTab === "favorites" ? favoriteWorks : filtered;
+  const deferredWorks = useDeferredValue(displayedWorks);
+  const isListUpdating = deferredWorks !== displayedWorks;
   const canExport = isTauri() && works.length > 0;
 
   return (
@@ -436,10 +438,23 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3 ${(currentQuery || currentGenre) ? "pb-36" : "pb-28"}`}>
-              {displayedWorks.map((work) => (
-                <WorkCard key={work.id} work={work} />
-              ))}
+            <div className="relative">
+              {isListUpdating && (
+                <div className="absolute inset-0 z-10 flex items-start justify-center pt-16 pointer-events-none">
+                  <div className="bg-slate-900/80 rounded-full px-4 py-2 flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4 text-violet-400" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    <span className="text-xs text-slate-300">読み込み中</span>
+                  </div>
+                </div>
+              )}
+              <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3 ${(currentQuery || currentGenre) ? "pb-36" : "pb-28"} transition-opacity duration-150 ${isListUpdating ? "opacity-50" : "opacity-100"}`}>
+                {deferredWorks.map((work) => (
+                  <WorkCard key={work.id} work={work} />
+                ))}
+              </div>
             </div>
           )}
         </main>
