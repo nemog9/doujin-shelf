@@ -75,7 +75,6 @@ export default function App() {
   const pushNavState = useCallback(() => {
     const { searchQuery: q, selectedGenre: g } = useAppStore.getState();
     navStackRef.current.push({ query: q, genre: g, scrollTop: mainScrollRef.current?.scrollTop ?? 0 });
-    history.pushState({ _appNav: true }, "");
   }, []);
 
   const popNavState = useCallback(() => {
@@ -117,7 +116,6 @@ export default function App() {
       const { searchQuery: q, selectedGenre: g } = useAppStore.getState();
       if (q !== pre.query || g !== pre.genre) {
         navStackRef.current.push({ ...pre, scrollTop: mainScrollRef.current?.scrollTop ?? 0 });
-        history.pushState({ _appNav: true }, "");
       }
     }
     preSearchStateRef.current = null;
