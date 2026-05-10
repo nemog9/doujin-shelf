@@ -449,7 +449,6 @@ export default function App() {
       <BottomNav
         activeTab={activeTab}
         onChange={handleTabChange}
-        favoritesCount={favorites.length}
       />
 
       {/* Search FAB — only on list/favorites tabs */}

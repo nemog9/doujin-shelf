@@ -5,7 +5,6 @@ export type Tab = "list" | "favorites" | "random" | "settings";
 interface Props {
   activeTab: Tab;
   onChange: (tab: Tab) => void;
-  favoritesCount: number;
 }
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -15,7 +14,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "settings",  label: "設定",      icon: "⚙" },
 ];
 
-export function BottomNav({ activeTab, onChange, favoritesCount }: Props) {
+export function BottomNav({ activeTab, onChange }: Props) {
   return (
     <nav
       className="fixed bottom-0 inset-x-0 z-40 bg-[#1a1a2e] border-t border-white/10 flex"
@@ -37,11 +36,6 @@ export function BottomNav({ activeTab, onChange, favoritesCount }: Props) {
                 : tab.icon}
             </span>
             <span className="text-[10px] font-medium">{tab.label}</span>
-            {tab.id === "favorites" && favoritesCount > 0 && (
-              <span className="absolute top-1.5 right-[calc(50%-14px)] min-w-[16px] h-4 bg-violet-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1">
-                {favoritesCount}
-              </span>
-            )}
           </button>
         );
       })}
