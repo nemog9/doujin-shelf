@@ -14,7 +14,7 @@ interface AppState {
   lastImportResult: ImportResult | null;
   selectedWork: Work | null;
 
-  addWorks: (incoming: Work[], filename: string, errors?: number) => ImportResult;
+  addWorks: (incoming: Work[], filename: string, errors?: number, favoriteIds?: string[]) => ImportResult;
   updateWork: (id: string, updates: Partial<Pick<Work, "title" | "circle" | "actors" | "genre">>) => void;
   hideWork: (id: string) => void;
   unhideWork: (id: string) => void;
@@ -48,7 +48,7 @@ export const useAppStore = create<AppState>()(
       selectedWork: null,
       searchHistory: [],
 
-      addWorks: (incoming, filename, errors = 0) => {
+      addWorks: (incoming, filename, errors = 0, favoriteIds = []) => {
         const existing = get().works;
         const existingIds = new Set(existing.map((w) => w.id));
         const added = incoming.filter((w) => !existingIds.has(w.id));
@@ -62,7 +62,12 @@ export const useAppStore = create<AppState>()(
           filename,
         };
 
-        set({ works: [...existing, ...added], lastImportResult: result });
+        const newFavorites = favoriteIds.filter((id) => !get().favorites.includes(id));
+        set({
+          works: [...existing, ...added],
+          favorites: [...get().favorites, ...newFavorites],
+          lastImportResult: result,
+        });
         return result;
       },
 

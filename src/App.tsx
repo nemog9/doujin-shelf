@@ -100,8 +100,8 @@ export default function App() {
           (window as any).__onCsvOpened = (content: string | null) => {
             delete (window as any).__onCsvOpened;
             if (!content || content.startsWith("error:")) return resolve();
-            const { works: parsed, errors } = parseCSV(content);
-            addWorks(parsed, "import.csv", errors);
+            const { works: parsed, errors, favoriteIds } = parseCSV(content);
+            addWorks(parsed, "import.csv", errors, favoriteIds);
             resolve();
           };
           window.AppBridge!.openCsvWithPicker!();
@@ -116,8 +116,8 @@ export default function App() {
 
         const content = await readTextFile(selected);
         const filename = selected.split(/[\\/]/).pop() ?? selected;
-        const { works: parsed, errors } = parseCSV(content);
-        addWorks(parsed, filename, errors);
+        const { works: parsed, errors, favoriteIds } = parseCSV(content);
+        addWorks(parsed, filename, errors, favoriteIds);
       }
     } catch (err) {
       console.error("Import failed:", err);
@@ -157,7 +157,7 @@ export default function App() {
         String(now.getSeconds()).padStart(2, "0"),
       ].join("");
       const filename = `voice-library-${stamp}.csv`;
-      const header = '"タイトル","サークル名","声優","ジャンル","URL","サムネイル"';
+      const header = '"タイトル","サークル名","声優","ジャンル","URL","サムネイル","お気に入り","非表示"';
       const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
       const lines = works.map((work) =>
         [
@@ -167,6 +167,8 @@ export default function App() {
           escape(work.genre),
           escape(work.productUrl),
           escape(work.thumbnailUrl),
+          favorites.includes(work.id) ? "○" : "",
+          work.hidden ? "○" : "",
         ].join(",")
       );
       const csv = `\uFEFF${[header, ...lines].join("\n")}`;

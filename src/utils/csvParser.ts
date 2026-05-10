@@ -47,6 +47,8 @@ interface WorkInput {
   thumbnailUrl?: string;
   productUrl: string;
   genre?: string;
+  hidden?: boolean;
+  isFavorite?: boolean;
 }
 
 type RawRow = Record<string, string>;
@@ -80,6 +82,15 @@ const COLUMN_MAP: Record<string, string> = {
   ジャンル: "genre",
   カテゴリ: "genre",
 
+  favorite: "isFavorite",
+  is_favorite: "isFavorite",
+  favorited: "isFavorite",
+  お気に入り: "isFavorite",
+
+  hidden: "isHidden",
+  is_hidden: "isHidden",
+  非表示: "isHidden",
+
   thumbnail_url: "thumbnailUrl",
   thumbnail: "thumbnailUrl",
   image_url: "thumbnailUrl",
@@ -99,9 +110,14 @@ function normalizeKey(key: string): string {
   return key.trim().toLowerCase().replace(/\s+/g, "_");
 }
 
+function parseBool(value: string): boolean {
+  return /^(○|true|1|yes|✓)$/i.test(value.trim());
+}
+
 export interface ParseCSVResult {
   works: Work[];
   errors: number;
+  favoriteIds: string[];
 }
 
 export function createWork(input: WorkInput, importedAt = new Date().toISOString()): Work | null {
@@ -122,6 +138,7 @@ export function createWork(input: WorkInput, importedAt = new Date().toISOString
     productUrl,
     source: detectSource(productUrl),
     genre: input.genre?.trim() ?? "",
+    hidden: input.hidden ?? false,
     importedAt,
   };
 }
@@ -134,7 +151,7 @@ export function parseCSV(csvContent: string): ParseCSVResult {
   });
 
   if (result.errors.length > 0 && result.data.length === 0) {
-    return { works: [], errors: result.errors.length };
+    return { works: [], errors: result.errors.length, favoriteIds: [] };
   }
 
   const headers = result.meta.fields ?? [];
@@ -146,6 +163,7 @@ export function parseCSV(csvContent: string): ParseCSVResult {
 
   let errors = 0;
   const works: Work[] = [];
+  const favoriteIds: string[] = [];
   const now = new Date().toISOString();
 
   for (const row of result.data) {
@@ -155,6 +173,8 @@ export function parseCSV(csvContent: string): ParseCSVResult {
       const val = (row[rawKey] ?? "").trim();
       if (field === "actors") {
         partial.actors = parseActors(val);
+      } else if (field === "isFavorite" || field === "isHidden") {
+        partial[field] = parseBool(val);
       } else {
         partial[field] = val;
       }
@@ -168,6 +188,7 @@ export function parseCSV(csvContent: string): ParseCSVResult {
         thumbnailUrl: (partial.thumbnailUrl as string | undefined) ?? "",
         productUrl: (partial.productUrl as string | undefined) ?? "",
         genre: (partial.genre as string | undefined) ?? "",
+        hidden: (partial.isHidden as boolean | undefined) ?? false,
       },
       now
     );
@@ -177,8 +198,9 @@ export function parseCSV(csvContent: string): ParseCSVResult {
       continue;
     }
 
+    if (partial.isFavorite) favoriteIds.push(work.id);
     works.push(work);
   }
 
-  return { works, errors: errors + result.errors.length };
+  return { works, errors: errors + result.errors.length, favoriteIds };
 }
