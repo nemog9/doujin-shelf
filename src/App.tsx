@@ -67,6 +67,10 @@ export default function App() {
   const [showHiddenWorks, setShowHiddenWorks] = useState(false);
 
   const handleTabChange = (tab: Tab) => {
+    if (tab === "list" && (searchQuery || selectedGenre)) {
+      setSearchQuery("");
+      setSelectedGenre("");
+    }
     setActiveTab(tab);
     if (tab !== "settings") setShowHiddenWorks(false);
   };
