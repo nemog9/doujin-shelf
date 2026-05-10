@@ -11,7 +11,7 @@ interface Props {
   work: Work;
   onClose: () => void;
   onFilterBy: (query: string) => void;
-  onDelete: () => void;
+  onHide: () => void;
 }
 
 const SOURCE_LABEL: Record<Work["source"], string> = {
@@ -34,7 +34,7 @@ function getOpenUrl(work: Work): string {
     : work.productUrl;
 }
 
-export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
+export function WorkModal({ work, onClose, onFilterBy, onHide }: Props) {
   const [imgError, setImgError] = useState(false);
   const [editing, setEditing] = useState(false);
   const linkOpenMode = useAppStore((s) => s.linkOpenMode);
@@ -90,10 +90,10 @@ export function WorkModal({ work, onClose, onFilterBy, onDelete }: Props) {
 
         <div className="flex items-center justify-between px-4 pt-2 pb-1">
           <button
-            onClick={onDelete}
-            className="text-xs text-rose-400 hover:text-rose-300 active:opacity-70 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-rose-900/20"
+            onClick={onHide}
+            className="text-xs text-slate-400 hover:text-slate-200 active:opacity-70 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-slate-700/60"
           >
-            削除
+            非表示
           </button>
           <div className="flex items-center gap-2">
             <button

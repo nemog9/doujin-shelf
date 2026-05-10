@@ -9,6 +9,7 @@ export interface Work {
   source: "dmm" | "dlsite" | "other"; // URL から自動判定
   genre: string;       // "ボイス" | "コミック" | "CG" | "動画" | ""
   importedAt: string;
+  hidden?: boolean;
 }
 
 export interface ImportResult {
