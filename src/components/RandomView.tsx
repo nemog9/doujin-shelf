@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Work } from "../types";
 
 interface Props {
@@ -6,20 +6,43 @@ interface Props {
   onSelect: (work: Work) => void;
 }
 
-function pickRandom(works: Work[], exclude?: string): Work | null {
-  if (works.length === 0) return null;
-  if (works.length === 1) return works[0];
-  const candidates = exclude ? works.filter((w) => w.id !== exclude) : works;
+const GENRE_OPTIONS = [
+  { value: "", label: "すべて" },
+  { value: "ボイス", label: "ボイス" },
+  { value: "コミック", label: "コミック" },
+  { value: "動画", label: "動画" },
+  { value: "CG", label: "CG" },
+];
+
+function pickRandom(pool: Work[], exclude?: string): Work | null {
+  if (pool.length === 0) return null;
+  if (pool.length === 1) return pool[0];
+  const candidates = exclude ? pool.filter((w) => w.id !== exclude) : pool;
+  if (candidates.length === 0) return pool[0];
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
 export function RandomView({ works, onSelect }: Props) {
-  const [current, setCurrent] = useState<Work | null>(() => pickRandom(works));
+  const [selectedGenre, setSelectedGenre] = useState("");
+  const [current, setCurrent] = useState<Work | null>(null);
   const [imgError, setImgError] = useState(false);
+
+  const pool = useMemo(() => {
+    const visible = works.filter((w) => !w.hidden);
+    if (!selectedGenre) return visible;
+    const genreFiltered = visible.filter((w) => w.genre === selectedGenre);
+    return genreFiltered.length > 0 ? genreFiltered : visible.filter((w) => !w.genre);
+  }, [works, selectedGenre]);
+
+  const handleGenreChange = (genre: string) => {
+    setSelectedGenre(genre);
+    setImgError(false);
+    setCurrent(null);
+  };
 
   const refresh = () => {
     setImgError(false);
-    setCurrent(pickRandom(works, current?.id ?? undefined));
+    setCurrent(pickRandom(pool, current?.id ?? undefined));
   };
 
   if (works.length === 0) {
@@ -33,9 +56,26 @@ export function RandomView({ works, onSelect }: Props) {
 
   return (
     <div className="flex-1 flex flex-col px-6 pt-4 pb-4">
+      {/* カテゴリ絞り込み */}
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-3 shrink-0">
+        {GENRE_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => handleGenreChange(opt.value)}
+            className={`text-xs px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
+              selectedGenre === opt.value
+                ? "bg-sky-600 text-white"
+                : "bg-slate-800 text-slate-400 active:text-slate-200"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {/* カード — 残りスペースを使いつつ溢れない */}
       <div className="flex-1 flex items-start justify-center overflow-hidden pb-4">
-        {current && (
+        {current ? (
           <button
             onClick={() => onSelect(current)}
             className="w-full max-w-sm flex flex-col bg-slate-800/60 rounded-2xl overflow-hidden border border-white/5 active:scale-95 transition-transform duration-150 text-left"
@@ -68,6 +108,11 @@ export function RandomView({ works, onSelect }: Props) {
               )}
             </div>
           </button>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-slate-500 text-sm gap-2">
+            <span className="text-5xl">🎲</span>
+            <p>ボタンを押してランダムに選択</p>
+          </div>
         )}
       </div>
 
@@ -75,9 +120,11 @@ export function RandomView({ works, onSelect }: Props) {
       <div className="flex justify-center pb-36">
         <button
           onClick={refresh}
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white font-medium px-6 py-3 rounded-2xl transition-colors text-sm"
+          disabled={pool.length === 0}
+          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 disabled:opacity-40 text-white font-medium px-6 py-3 rounded-2xl transition-colors text-sm"
         >
-          <span className="text-base">🎲</span> 別の作品
+          <span className="text-base">🎲</span>
+          {current ? "別の作品" : "ランダムに選ぶ"}
         </button>
       </div>
     </div>
