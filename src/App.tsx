@@ -157,13 +157,14 @@ export default function App() {
         String(now.getSeconds()).padStart(2, "0"),
       ].join("");
       const filename = `voice-library-${stamp}.csv`;
-      const header = '"タイトル","サークル名","声優","URL","サムネイル"';
+      const header = '"タイトル","サークル名","声優","ジャンル","URL","サムネイル"';
       const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
       const lines = works.map((work) =>
         [
           escape(work.title),
           escape(work.circle),
           escape(work.actors.join(",")),
+          escape(work.genre),
           escape(work.productUrl),
           escape(work.thumbnailUrl),
         ].join(",")
