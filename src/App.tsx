@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isTauri } from "@tauri-apps/api/core";
 import { confirm, open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
@@ -66,14 +66,63 @@ export default function App() {
   const [favGenre, setFavGenre] = useState("");
   const [showHiddenWorks, setShowHiddenWorks] = useState(false);
 
+  // ── ナビゲーション履歴（一覧タブの検索状態 + スクロール位置） ──────────────
+  interface NavEntry { query: string; genre: string; scrollTop: number }
+  const navStackRef = useRef<NavEntry[]>([]);
+  const mainScrollRef = useRef<HTMLElement>(null);
+  const preSearchStateRef = useRef<{ query: string; genre: string } | null>(null);
+
+  const pushNavState = useCallback(() => {
+    const { searchQuery: q, selectedGenre: g } = useAppStore.getState();
+    navStackRef.current.push({ query: q, genre: g, scrollTop: mainScrollRef.current?.scrollTop ?? 0 });
+    history.pushState({ _appNav: true }, "");
+  }, []);
+
+  const popNavState = useCallback(() => {
+    const prev = navStackRef.current.pop();
+    if (!prev) return false;
+    setSearchQuery(prev.query);
+    setSelectedGenre(prev.genre);
+    requestAnimationFrame(() => {
+      if (mainScrollRef.current) mainScrollRef.current.scrollTop = prev.scrollTop;
+    });
+    return true;
+  }, [setSearchQuery, setSelectedGenre]);
+
   const handleTabChange = (tab: Tab) => {
-    if (tab === "list" && (searchQuery || selectedGenre)) {
-      setSearchQuery("");
-      setSelectedGenre("");
+    if (tab === "list" && activeTab === "list" && (searchQuery || selectedGenre)) {
+      if (!popNavState()) {
+        setSearchQuery("");
+        setSelectedGenre("");
+        navStackRef.current = [];
+      }
+      setActiveTab(tab);
+      setShowHiddenWorks(false);
+      return;
     }
+    if (tab !== "list") navStackRef.current = [];
     setActiveTab(tab);
     if (tab !== "settings") setShowHiddenWorks(false);
   };
+
+  const handleSearchOpen = useCallback(() => {
+    const { searchQuery: q, selectedGenre: g } = useAppStore.getState();
+    preSearchStateRef.current = { query: q, genre: g };
+    setSearchOpen(true);
+  }, []);
+
+  const handleSearchClose = useCallback(() => {
+    const pre = preSearchStateRef.current;
+    if (pre) {
+      const { searchQuery: q, selectedGenre: g } = useAppStore.getState();
+      if (q !== pre.query || g !== pre.genre) {
+        navStackRef.current.push({ ...pre, scrollTop: mainScrollRef.current?.scrollTop ?? 0 });
+        history.pushState({ _appNav: true }, "");
+      }
+    }
+    preSearchStateRef.current = null;
+    setSearchOpen(false);
+  }, []);
 
   // タブごとに独立した検索状態
   const currentQuery  = activeTab === "favorites" ? favQuery  : searchQuery;
@@ -243,6 +292,36 @@ export default function App() {
     };
   }, [handleDmmScraped]);
 
+  // Android back gesture / browser back ボタンの横取り
+  const backHandlerRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    backHandlerRef.current = () => {
+      if (searchOpen) {
+        handleSearchClose();
+        history.pushState({ _appNav: true }, "");
+        return;
+      }
+      if (selectedWork) {
+        selectWork(null);
+        history.pushState({ _appNav: true }, "");
+        return;
+      }
+      if (activeTab === "list" && navStackRef.current.length > 0) {
+        popNavState();
+        history.pushState({ _appNav: true }, "");
+        return;
+      }
+      // 何もなければ Android に戻る操作を委ねる（アプリ最小化）
+    };
+  }, [searchOpen, selectedWork, activeTab, handleSearchClose, popNavState, selectWork]);
+
+  useEffect(() => {
+    history.pushState({ _appNav: true }, "");
+    const handler = () => backHandlerRef.current();
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, []);
+
   const displayedWorks = activeTab === "favorites" ? favoriteWorks : filtered;
   const canExport = isTauri() && works.length > 0;
 
@@ -330,6 +409,7 @@ export default function App() {
         )
       ) : (
         <main
+          ref={mainScrollRef as React.RefObject<HTMLElement>}
           className={`flex-1 scrollbar-hide ${searchOpen || !!selectedWork ? "overflow-hidden" : "overflow-y-auto"}`}
           style={{
             WebkitOverflowScrolling: "touch",
@@ -375,7 +455,7 @@ export default function App() {
       {/* Search FAB — only on list/favorites tabs */}
       {activeTab !== "random" && activeTab !== "settings" && (
         <SearchFAB
-          onClick={() => setSearchOpen(true)}
+          onClick={handleSearchOpen}
           hasActiveQuery={!!(currentQuery || currentGenre)}
         />
       )}
@@ -391,7 +471,7 @@ export default function App() {
           onSortChange={(s) => setSortBy(s as SortField)}
           totalCount={activeTab === "favorites" ? favorites.length : works.length}
           filteredCount={displayedWorks.length}
-          onClose={() => setSearchOpen(false)}
+          onClose={handleSearchClose}
         />
       )}
 
@@ -400,7 +480,7 @@ export default function App() {
         <WorkModal
           work={selectedWork}
           onClose={() => selectWork(null)}
-          onFilterBy={(q) => { setSearchQuery(q); selectWork(null); setActiveTab("list"); }}
+          onFilterBy={(q) => { pushNavState(); setSearchQuery(q); selectWork(null); setActiveTab("list"); }}
           onHide={() => handleHideWork(selectedWork)}
         />
       )}
