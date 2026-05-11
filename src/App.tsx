@@ -470,7 +470,10 @@ export default function App() {
                   </div>
                 </div>
               )}
-              <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3 ${(currentQuery || currentGenre) ? "pb-36" : "pb-28"} transition-opacity duration-150 ${isListUpdating ? "opacity-50" : "opacity-100"}`}>
+              <div
+                className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3 transition-opacity duration-150 ${isListUpdating ? "opacity-50" : "opacity-100"}`}
+                style={{ paddingBottom: `calc(${(currentQuery || currentGenre) ? "9rem" : "7rem"} + env(safe-area-inset-bottom))` }}
+              >
                 {visibleWorks.map((work) => (
                   <WorkCard key={work.id} work={work} />
                 ))}

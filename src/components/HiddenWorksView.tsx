@@ -69,7 +69,7 @@ export function HiddenWorksView({ works, onUnhide, onBack }: Props) {
           <p>非表示にした作品はありません</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3 pb-28">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3" style={{ paddingBottom: "calc(7rem + env(safe-area-inset-bottom))" }}>
           {works.map((work) => (
             <HiddenWorkCard key={work.id} work={work} onUnhide={() => onUnhide(work.id)} />
           ))}

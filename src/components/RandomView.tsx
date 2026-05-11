@@ -117,7 +117,7 @@ export function RandomView({ works, onSelect }: Props) {
       </div>
 
       {/* ボタン — 常に下部に固定（BottomNav分の余白を確保） */}
-      <div className="flex justify-center pb-36">
+      <div className="flex justify-center" style={{ paddingBottom: "calc(9rem + env(safe-area-inset-bottom))" }}>
         <button
           onClick={refresh}
           disabled={pool.length === 0}
