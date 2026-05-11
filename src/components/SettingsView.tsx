@@ -41,7 +41,7 @@ export function SettingsView({
   onShowHidden,
 }: Props) {
   return (
-    <main className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-24 space-y-4">
+    <main className="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-4" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom))" }}>
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-slate-100">作品リンクの開き方</h2>
         <p className="text-xs leading-relaxed text-slate-400">
