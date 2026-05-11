@@ -101,6 +101,7 @@ export default function App() {
       setShowHiddenWorks(false);
       return;
     }
+    if (tab !== activeTab) setDisplayLimit(BATCH_SIZE);
     if (tab !== "list") navStackRef.current = [];
     setActiveTab(tab);
     if (tab !== "settings") setShowHiddenWorks(false);
@@ -329,23 +330,20 @@ export default function App() {
   const [displayLimit, setDisplayLimit] = useState(BATCH_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setDisplayLimit(BATCH_SIZE);
-  }, [deferredWorks]);
-
   const visibleWorks = deferredWorks.slice(0, displayLimit);
   const hasMore = displayLimit < deferredWorks.length;
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel || !hasMore) return;
+    const root = mainScrollRef.current;
+    if (!sentinel || !root || !hasMore) return;
     const observer = new IntersectionObserver(
       (entries) => { if (entries[0].isIntersecting) setDisplayLimit((prev) => prev + BATCH_SIZE); },
-      { rootMargin: "400px" }
+      { root, rootMargin: "400px" }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasMore]);
+  }, [hasMore, deferredWorks]);
 
   const canExport = isTauri() && works.length > 0;
 
