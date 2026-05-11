@@ -17,6 +17,8 @@ import { HiddenWorksView } from "./components/HiddenWorksView";
 import { Work } from "./types";
 import { SortField } from "./types";
 
+const BATCH_SIZE = 40;
+
 declare global {
   interface Window {
     __onDmmScraped?: (items: DmmScrapedItem[]) => void;
@@ -323,6 +325,28 @@ export default function App() {
   const displayedWorks = activeTab === "favorites" ? favoriteWorks : filtered;
   const deferredWorks = useDeferredValue(displayedWorks);
   const isListUpdating = deferredWorks !== displayedWorks;
+
+  const [displayLimit, setDisplayLimit] = useState(BATCH_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setDisplayLimit(BATCH_SIZE);
+  }, [deferredWorks]);
+
+  const visibleWorks = deferredWorks.slice(0, displayLimit);
+  const hasMore = displayLimit < deferredWorks.length;
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) setDisplayLimit((prev) => prev + BATCH_SIZE); },
+      { rootMargin: "400px" }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore]);
+
   const canExport = isTauri() && works.length > 0;
 
   return (
@@ -449,9 +473,10 @@ export default function App() {
                 </div>
               )}
               <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-3 ${(currentQuery || currentGenre) ? "pb-36" : "pb-28"} transition-opacity duration-150 ${isListUpdating ? "opacity-50" : "opacity-100"}`}>
-                {deferredWorks.map((work) => (
+                {visibleWorks.map((work) => (
                   <WorkCard key={work.id} work={work} />
                 ))}
+                {hasMore && <div ref={sentinelRef} className="col-span-full h-1" />}
               </div>
             </div>
           )}
