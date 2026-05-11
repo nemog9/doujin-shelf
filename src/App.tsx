@@ -348,7 +348,7 @@ export default function App() {
   const canExport = isTauri() && works.length > 0;
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden">
+    <div className="h-dvh flex flex-col overflow-hidden" style={{ paddingBottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}>
       {/* Header */}
       <header className="px-4 pt-3 pb-2 flex items-center justify-between shrink-0">
         <h1 className="text-base font-bold text-slate-100 tracking-tight">

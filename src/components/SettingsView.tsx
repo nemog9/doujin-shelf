@@ -193,8 +193,6 @@ export function SettingsView({
           </p>
         </button>
       </section>
-
-      <div style={{ height: "calc(4rem + env(safe-area-inset-bottom))" }} />
     </main>
   );
 }
