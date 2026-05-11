@@ -186,6 +186,7 @@ export function SettingsView({
         <button
           onClick={onDeleteAll}
           className="w-full rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-4 text-left transition-colors hover:bg-red-500/20 active:bg-red-500/30"
+          style={{ marginBottom: "calc(4rem + env(safe-area-inset-bottom))" }}
         >
           <p className="text-sm font-medium text-red-400">すべてのデータを削除</p>
           <p className="mt-1 text-xs leading-relaxed text-slate-400">
